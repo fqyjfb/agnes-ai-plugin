@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Agnes AI Plugin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            colors: {
+              purple: {
+                50: '#faf5ff',
+                100: '#f3e8ff',
+                200: '#e9d5ff',
+                300: '#d8b4fe',
+                400: '#c084fc',
+                500: '#a855f7',
+                600: '#9333ea',
+                700: '#7c3aed',
+                800: '#6b21a8',
+                900: '#581c87',
+              },
+            },
+            fontFamily: {
+              sans: ['Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+            },
+          },
+        },
+      };
+    </script>
+    <style>
+      body {
+        font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif;
+      }
+      .line-clamp-2 {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+      .line-clamp-1 {
+        display: -webkit-box;
+        -webkit-line-clamp: 1;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+    </style>
+  </head>
+  <body class="bg-gray-50 dark:bg-gray-900">
+    <div id="app"></div>
+    <script src="./dist/index.js"></script>
+  </body>
+</html>

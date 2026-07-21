@@ -1,0 +1,25 @@
+{
+  "name": "agnes-ai-plugin",
+  "version": "1.0.0",
+  "description": "Agnes AI 插件 - AI助手、字体生成器、历史记录",
+  "main": "dist/index.js",
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs"
+  },
+  "dependencies": {
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "lucide-react": "^1.8.0",
+    "zustand": "^4.5.0",
+    "react-markdown": "^9.0.1",
+    "remark-gfm": "^4.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "typescript": "^6.0.0",
+    "vite": "^5.0.0"
+  }
+}
