@@ -21,11 +21,11 @@ jobs:
         with:
           node-version: '24.x'
 
-      - name: Install npm dependencies
-        run: npm install
+      - name: Install dependencies
+        run: npm ci
 
       - name: Build plugin
-        run: npm run build
+        run: node build.mjs
 
       - name: Create zip archive
         run: zip -r plugin-agnes-ai.zip dist manifest.json
