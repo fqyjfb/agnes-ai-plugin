@@ -92,11 +92,23 @@ function registerPlugin(toolboxApi: any) {
   });
 }
 
-if (typeof window !== 'undefined' && window.__PLUGIN_DATA__) {
-  const root = document.getElementById('app');
-  if (root) {
-    ReactDOM.createRoot(root).render(<App />);
+function renderStandalone() {
+  const root = document.getElementById('root');
+  if (!root) {
+    console.error('Root element not found');
+    return;
   }
+
+  if (ReactDOM.createRoot) {
+    ReactDOM.createRoot(root).render(<App />);
+  } else {
+    ReactDOM.render(<App />, root);
+  }
+}
+
+const pluginData = (window as any).__PLUGIN_DATA__;
+if (pluginData) {
+  renderStandalone();
 }
 
 (window as any).registerPlugin = registerPlugin;

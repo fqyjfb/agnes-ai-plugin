@@ -28615,11 +28615,21 @@
       }
     });
   }
-  if (typeof window !== "undefined" && window.__PLUGIN_DATA__) {
-    const root2 = document.getElementById("app");
-    if (root2) {
-      ReactDOM.createRoot(root2).render(/* @__PURE__ */ jsxRuntimeExports.jsx(App, {}));
+  function renderStandalone() {
+    const root2 = document.getElementById("root");
+    if (!root2) {
+      console.error("Root element not found");
+      return;
     }
+    if (ReactDOM.createRoot) {
+      ReactDOM.createRoot(root2).render(/* @__PURE__ */ jsxRuntimeExports.jsx(App, {}));
+    } else {
+      ReactDOM.render(/* @__PURE__ */ jsxRuntimeExports.jsx(App, {}), root2);
+    }
+  }
+  const pluginData = window.__PLUGIN_DATA__;
+  if (pluginData) {
+    renderStandalone();
   }
   window.registerPlugin = registerPlugin;
 })();
