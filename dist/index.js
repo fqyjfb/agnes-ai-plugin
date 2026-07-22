@@ -13242,35 +13242,46 @@
    * This source code is licensed under the ISC license.
    * See the LICENSE file in the root directory of this source tree.
    */
-  const __iconNode$y = [
+  const __iconNode$z = [
     ["path", { d: "m12 19-7-7 7-7", key: "1l729n" }],
     ["path", { d: "M19 12H5", key: "x3x0zl" }]
   ];
-  const ArrowLeft = createLucideIcon("arrow-left", __iconNode$y);
+  const ArrowLeft = createLucideIcon("arrow-left", __iconNode$z);
   /**
    * @license lucide-react v1.25.0 - ISC
    *
    * This source code is licensed under the ISC license.
    * See the LICENSE file in the root directory of this source tree.
    */
-  const __iconNode$x = [["path", { d: "M20 6 9 17l-5-5", key: "1gmf2c" }]];
-  const Check = createLucideIcon("check", __iconNode$x);
+  const __iconNode$y = [["path", { d: "M20 6 9 17l-5-5", key: "1gmf2c" }]];
+  const Check = createLucideIcon("check", __iconNode$y);
   /**
    * @license lucide-react v1.25.0 - ISC
    *
    * This source code is licensed under the ISC license.
    * See the LICENSE file in the root directory of this source tree.
    */
-  const __iconNode$w = [["path", { d: "m6 9 6 6 6-6", key: "qrunsl" }]];
-  const ChevronDown = createLucideIcon("chevron-down", __iconNode$w);
+  const __iconNode$x = [["path", { d: "m6 9 6 6 6-6", key: "qrunsl" }]];
+  const ChevronDown = createLucideIcon("chevron-down", __iconNode$x);
   /**
    * @license lucide-react v1.25.0 - ISC
    *
    * This source code is licensed under the ISC license.
    * See the LICENSE file in the root directory of this source tree.
    */
-  const __iconNode$v = [["path", { d: "m18 15-6-6-6 6", key: "153udz" }]];
-  const ChevronUp = createLucideIcon("chevron-up", __iconNode$v);
+  const __iconNode$w = [["path", { d: "m18 15-6-6-6 6", key: "153udz" }]];
+  const ChevronUp = createLucideIcon("chevron-up", __iconNode$w);
+  /**
+   * @license lucide-react v1.25.0 - ISC
+   *
+   * This source code is licensed under the ISC license.
+   * See the LICENSE file in the root directory of this source tree.
+   */
+  const __iconNode$v = [
+    ["rect", { width: "14", height: "14", x: "8", y: "8", rx: "2", ry: "2", key: "17jyea" }],
+    ["path", { d: "M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2", key: "zix9uf" }]
+  ];
+  const Copy = createLucideIcon("copy", __iconNode$v);
   /**
    * @license lucide-react v1.25.0 - ISC
    *
@@ -13278,10 +13289,11 @@
    * See the LICENSE file in the root directory of this source tree.
    */
   const __iconNode$u = [
-    ["rect", { width: "14", height: "14", x: "8", y: "8", rx: "2", ry: "2", key: "17jyea" }],
-    ["path", { d: "M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2", key: "zix9uf" }]
+    ["path", { d: "M12 15V3", key: "m9g1x1" }],
+    ["path", { d: "M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4", key: "ih7n3h" }],
+    ["path", { d: "m7 10 5 5 5-5", key: "brsn70" }]
   ];
-  const Copy = createLucideIcon("copy", __iconNode$u);
+  const Download = createLucideIcon("download", __iconNode$u);
   /**
    * @license lucide-react v1.25.0 - ISC
    *
@@ -13289,18 +13301,6 @@
    * See the LICENSE file in the root directory of this source tree.
    */
   const __iconNode$t = [
-    ["path", { d: "M12 15V3", key: "m9g1x1" }],
-    ["path", { d: "M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4", key: "ih7n3h" }],
-    ["path", { d: "m7 10 5 5 5-5", key: "brsn70" }]
-  ];
-  const Download = createLucideIcon("download", __iconNode$t);
-  /**
-   * @license lucide-react v1.25.0 - ISC
-   *
-   * This source code is licensed under the ISC license.
-   * See the LICENSE file in the root directory of this source tree.
-   */
-  const __iconNode$s = [
     [
       "path",
       {
@@ -13318,14 +13318,14 @@
     ],
     ["path", { d: "m2 2 20 20", key: "1ooewy" }]
   ];
-  const EyeOff = createLucideIcon("eye-off", __iconNode$s);
+  const EyeOff = createLucideIcon("eye-off", __iconNode$t);
   /**
    * @license lucide-react v1.25.0 - ISC
    *
    * This source code is licensed under the ISC license.
    * See the LICENSE file in the root directory of this source tree.
    */
-  const __iconNode$r = [
+  const __iconNode$s = [
     [
       "path",
       {
@@ -13335,14 +13335,14 @@
     ],
     ["circle", { cx: "12", cy: "12", r: "3", key: "1v7zrd" }]
   ];
-  const Eye = createLucideIcon("eye", __iconNode$r);
+  const Eye = createLucideIcon("eye", __iconNode$s);
   /**
    * @license lucide-react v1.25.0 - ISC
    *
    * This source code is licensed under the ISC license.
    * See the LICENSE file in the root directory of this source tree.
    */
-  const __iconNode$q = [
+  const __iconNode$r = [
     [
       "path",
       {
@@ -13355,14 +13355,14 @@
     ["path", { d: "M16 13H8", key: "t4e002" }],
     ["path", { d: "M16 17H8", key: "z1uh3a" }]
   ];
-  const FileText = createLucideIcon("file-text", __iconNode$q);
+  const FileText = createLucideIcon("file-text", __iconNode$r);
   /**
    * @license lucide-react v1.25.0 - ISC
    *
    * This source code is licensed under the ISC license.
    * See the LICENSE file in the root directory of this source tree.
    */
-  const __iconNode$p = [
+  const __iconNode$q = [
     ["rect", { width: "18", height: "18", x: "3", y: "3", rx: "2", key: "afitv7" }],
     ["path", { d: "M7 3v18", key: "bbkbws" }],
     ["path", { d: "M3 7.5h4", key: "zfgn84" }],
@@ -13372,7 +13372,19 @@
     ["path", { d: "M17 7.5h4", key: "myr1c1" }],
     ["path", { d: "M17 16.5h4", key: "go4c1d" }]
   ];
-  const Film = createLucideIcon("film", __iconNode$p);
+  const Film = createLucideIcon("film", __iconNode$q);
+  /**
+   * @license lucide-react v1.25.0 - ISC
+   *
+   * This source code is licensed under the ISC license.
+   * See the LICENSE file in the root directory of this source tree.
+   */
+  const __iconNode$p = [
+    ["circle", { cx: "12", cy: "12", r: "10", key: "1mglay" }],
+    ["path", { d: "M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20", key: "13o1zl" }],
+    ["path", { d: "M2 12h20", key: "9i4pu4" }]
+  ];
+  const Globe = createLucideIcon("globe", __iconNode$p);
   /**
    * @license lucide-react v1.25.0 - ISC
    *
@@ -13380,11 +13392,11 @@
    * See the LICENSE file in the root directory of this source tree.
    */
   const __iconNode$o = [
-    ["circle", { cx: "12", cy: "12", r: "10", key: "1mglay" }],
-    ["path", { d: "M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20", key: "13o1zl" }],
-    ["path", { d: "M2 12h20", key: "9i4pu4" }]
+    ["path", { d: "M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8", key: "1357e3" }],
+    ["path", { d: "M3 3v5h5", key: "1xhq8a" }],
+    ["path", { d: "M12 7v5l4 2", key: "1fdv2h" }]
   ];
-  const Globe = createLucideIcon("globe", __iconNode$o);
+  const History = createLucideIcon("history", __iconNode$o);
   /**
    * @license lucide-react v1.25.0 - ISC
    *
@@ -13392,11 +13404,16 @@
    * See the LICENSE file in the root directory of this source tree.
    */
   const __iconNode$n = [
-    ["path", { d: "M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8", key: "1357e3" }],
-    ["path", { d: "M3 3v5h5", key: "1xhq8a" }],
-    ["path", { d: "M12 7v5l4 2", key: "1fdv2h" }]
+    ["path", { d: "M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8", key: "5wwlr5" }],
+    [
+      "path",
+      {
+        d: "M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z",
+        key: "r6nss1"
+      }
+    ]
   ];
-  const History = createLucideIcon("history", __iconNode$n);
+  const House = createLucideIcon("house", __iconNode$n);
   /**
    * @license lucide-react v1.25.0 - ISC
    *
@@ -26893,7 +26910,7 @@
       setEditingContent("");
     };
     rolePresets.find((p) => p.id === activeRolePresetId);
-    return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: `flex h-screen overflow-hidden bg-gray-50 dark:bg-gray-900`, children: [
+    return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: `flex h-full overflow-hidden bg-gray-50 dark:bg-gray-900`, children: [
       /* @__PURE__ */ jsxRuntimeExports.jsxs(
         "div",
         {
@@ -27964,16 +27981,25 @@
       { value: "gradient", label: "渐", description: "渐变背景" }
     ];
     return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "h-full flex flex-col md:flex-row bg-gray-50 dark:bg-gray-900", children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "md:max-w-[210px] flex flex-col md:min-w-[210px]", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "md:max-w-[210px] flex flex-col md:min-w-[210px] flex-shrink-0", children: [
         /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "p-3 flex items-center justify-between", children: [
           /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-2", children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx(
+              "button",
+              {
+                onClick: () => onNavigate("chat"),
+                className: "p-1.5 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-400",
+                title: "返回主界面",
+                children: /* @__PURE__ */ jsxRuntimeExports.jsx(House, { className: "w-4 h-4" })
+              }
+            ),
             /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "w-8 h-8 rounded-lg bg-primary flex items-center justify-center", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Palette, { className: "w-4 h-4 text-white" }) }),
             /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
               /* @__PURE__ */ jsxRuntimeExports.jsx("h2", { className: "font-semibold text-sm text-gray-800 dark:text-gray-200", children: "字体生成器" }),
               /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-xs text-gray-500 dark:text-gray-400", children: "AI艺术字体" })
             ] })
           ] }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx(
+          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "flex items-center gap-1", children: /* @__PURE__ */ jsxRuntimeExports.jsx(
             "button",
             {
               onClick: () => onNavigate("history"),
@@ -27981,7 +28007,7 @@
               title: "历史记录",
               children: /* @__PURE__ */ jsxRuntimeExports.jsx(History, { className: "w-4 h-4" })
             }
-          )
+          ) })
         ] }),
         /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "p-3 relative", children: [
           /* @__PURE__ */ jsxRuntimeExports.jsx(
@@ -27992,7 +28018,7 @@
                 setSelectedCategoryId(e.target.value);
                 setSelectedFontStyle(null);
               },
-              className: "w-full px-3 py-2 pr-8 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-1 focus:ring-blue-500 appearance-none cursor-pointer",
+              className: "w-full px-3 py-2 pr-8 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-1 focus:ring-primary appearance-none cursor-pointer",
               children: FONT_CATEGORIES.map((cat) => /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: cat.category_id, children: cat.name }, cat.category_id))
             }
           ),
@@ -28030,7 +28056,7 @@
                   onChange: (e) => setTextInput(e.target.value),
                   placeholder: "输入文字（2-4字）",
                   maxLength: 10,
-                  className: "w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className: "w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-primary"
                 }
               ),
               textInput && /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "absolute right-2.5 top-1/2 -translate-y-1/2 text-xs text-gray-400", children: [
@@ -28054,7 +28080,7 @@
                   }
                 },
                 placeholder: "字体风格描述...",
-                className: "w-full px-3 py-2 text-xs border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none",
+                className: "w-full px-3 py-2 text-xs border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-primary resize-none",
                 rows: 3
               }
             ) }),
@@ -28065,7 +28091,7 @@
                   {
                     value: selectedSize,
                     onChange: (e) => setSelectedSize(e.target.value),
-                    className: "w-full px-3 py-2 text-xs border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-1 focus:ring-blue-500 appearance-none",
+                    className: "w-full px-3 py-2 text-xs border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-1 focus:ring-primary appearance-none",
                     children: sizes.map((opt) => /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: opt.value, children: opt.label }, opt.value))
                   }
                 ),
@@ -28078,7 +28104,7 @@
                   value: imageSeed,
                   onChange: (e) => setImageSeed(e.target.value),
                   placeholder: "种子",
-                  className: "w-full px-2 py-2 text-xs border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className: "w-full px-2 py-2 text-xs border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-primary"
                 }
               ) })
             ] }),
@@ -28099,7 +28125,7 @@
                 value: negativePrompt,
                 onChange: (e) => setNegativePrompt(e.target.value),
                 placeholder: "负向提示词",
-                className: "w-full px-2 py-1.5 text-xs border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className: "w-full px-2 py-1.5 text-xs border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-primary"
               }
             ),
             /* @__PURE__ */ jsxRuntimeExports.jsx(
@@ -28125,7 +28151,7 @@
           ] })
         ] })
       ] }),
-      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex-1 flex flex-col p-3 md:p-6", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex-1 flex flex-col p-3 md:p-6 min-h-0 overflow-hidden", children: [
         /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center justify-between mb-4", children: [
           /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
             /* @__PURE__ */ jsxRuntimeExports.jsx("h1", { className: "text-lg md:text-xl font-bold text-gray-800 dark:text-gray-200", children: "生成结果" }),
@@ -28416,7 +28442,7 @@
       };
       return statusMap[status] || status;
     };
-    return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "h-screen flex flex-col bg-gray-50 dark:bg-gray-900", children: [
+    return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "h-full flex flex-col bg-gray-50 dark:bg-gray-900", children: [
       /* @__PURE__ */ jsxRuntimeExports.jsxs("header", { className: "flex items-center justify-between px-4 py-3 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700", children: [
         /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-3", children: [
           /* @__PURE__ */ jsxRuntimeExports.jsx(

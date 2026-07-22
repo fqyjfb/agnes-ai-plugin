@@ -632,7 +632,7 @@ export function AIChatPage({ onNavigate, userId = 'local-user' }: AIChatPageProp
   const currentPreset = rolePresets.find((p) => p.id === activeRolePresetId);
 
   return (
-    <div className={`flex h-screen overflow-hidden bg-gray-50 dark:bg-gray-900`}>
+    <div className={`flex h-full overflow-hidden bg-gray-50 dark:bg-gray-900`}>
       <div 
         className={`flex flex-col bg-white dark:bg-gray-800 transition-all duration-300 min-h-0 overflow-hidden flex-shrink-0 ${
           sidebarCollapsed ? 'w-14' : 'w-[180px] md:w-[200px]'

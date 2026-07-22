@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ArrowLeft, Wand2, Download, Copy, Check, Palette, Type, Sparkles, Settings2, History } from 'lucide-react';
+import { ArrowLeft, Wand2, Download, Copy, Check, Palette, Type, Sparkles, Settings2, History, Home } from 'lucide-react';
 import { useAgnesStore } from '../store/agnesStore';
 import { generateImage } from '../services/agnesApi';
 import { FONT_CATEGORIES, FONT_STYLES, getFontStyles } from '../constants/fontStyles';
@@ -128,9 +128,16 @@ export function FontGeneratorPage({ onNavigate, userId = 'local-user' }: FontGen
 
   return (
     <div className="h-full flex flex-col md:flex-row bg-gray-50 dark:bg-gray-900">
-      <div className="md:max-w-[210px] flex flex-col md:min-w-[210px]">
+      <div className="md:max-w-[210px] flex flex-col md:min-w-[210px] flex-shrink-0">
         <div className="p-3 flex items-center justify-between">
           <div className="flex items-center gap-2">
+            <button
+              onClick={() => onNavigate('chat')}
+              className="p-1.5 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-400"
+              title="返回主界面"
+            >
+              <Home className="w-4 h-4" />
+            </button>
             <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
               <Palette className="w-4 h-4 text-white" />
             </div>
@@ -139,13 +146,15 @@ export function FontGeneratorPage({ onNavigate, userId = 'local-user' }: FontGen
               <p className="text-xs text-gray-500 dark:text-gray-400">AI艺术字体</p>
             </div>
           </div>
-          <button
-            onClick={() => onNavigate('history')}
-            className="p-1.5 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-400"
-            title="历史记录"
-          >
-            <History className="w-4 h-4" />
-          </button>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => onNavigate('history')}
+              className="p-1.5 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-400"
+              title="历史记录"
+            >
+              <History className="w-4 h-4" />
+            </button>
+          </div>
         </div>
 
         <div className="p-3 relative">
@@ -155,7 +164,7 @@ export function FontGeneratorPage({ onNavigate, userId = 'local-user' }: FontGen
               setSelectedCategoryId(e.target.value);
               setSelectedFontStyle(null);
             }}
-            className="w-full px-3 py-2 pr-8 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-1 focus:ring-blue-500 appearance-none cursor-pointer"
+            className="w-full px-3 py-2 pr-8 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-1 focus:ring-primary appearance-none cursor-pointer"
           >
             {FONT_CATEGORIES.map(cat => (
               <option key={cat.category_id} value={cat.category_id}>
@@ -210,7 +219,7 @@ export function FontGeneratorPage({ onNavigate, userId = 'local-user' }: FontGen
                 onChange={(e) => setTextInput(e.target.value)}
                 placeholder="输入文字（2-4字）"
                 maxLength={10}
-                className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-primary"
               />
               {textInput && (
                 <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs text-gray-400">
@@ -235,7 +244,7 @@ export function FontGeneratorPage({ onNavigate, userId = 'local-user' }: FontGen
                     }
                   }}
                   placeholder="字体风格描述..."
-                  className="w-full px-3 py-2 text-xs border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none"
+                  className="w-full px-3 py-2 text-xs border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-primary resize-none"
                   rows={3}
                 />
               </div>
@@ -246,7 +255,7 @@ export function FontGeneratorPage({ onNavigate, userId = 'local-user' }: FontGen
                 <select
                   value={selectedSize}
                   onChange={(e) => setSelectedSize(e.target.value)}
-                  className="w-full px-3 py-2 text-xs border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-1 focus:ring-blue-500 appearance-none"
+                  className="w-full px-3 py-2 text-xs border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-1 focus:ring-primary appearance-none"
                 >
                   {sizes.map(opt => (
                     <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -260,7 +269,7 @@ export function FontGeneratorPage({ onNavigate, userId = 'local-user' }: FontGen
                   value={imageSeed}
                   onChange={(e) => setImageSeed(e.target.value)}
                   placeholder="种子"
-                  className="w-full px-2 py-2 text-xs border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="w-full px-2 py-2 text-xs border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-primary"
                 />
               </div>
             </div>
@@ -287,7 +296,7 @@ export function FontGeneratorPage({ onNavigate, userId = 'local-user' }: FontGen
               value={negativePrompt}
               onChange={(e) => setNegativePrompt(e.target.value)}
               placeholder="负向提示词"
-              className="w-full px-2 py-1.5 text-xs border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="w-full px-2 py-1.5 text-xs border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-primary"
             />
 
             <button
@@ -321,7 +330,7 @@ export function FontGeneratorPage({ onNavigate, userId = 'local-user' }: FontGen
         </div>
       </div>
 
-      <div className="flex-1 flex flex-col p-3 md:p-6">
+      <div className="flex-1 flex flex-col p-3 md:p-6 min-h-0 overflow-hidden">
         <div className="flex items-center justify-between mb-4">
           <div>
             <h1 className="text-lg md:text-xl font-bold text-gray-800 dark:text-gray-200">生成结果</h1>
