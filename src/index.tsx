@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { createRoot } from 'react-dom/client';
+import ReactDOM from 'react-dom/client';
 import { MessageSquare, Wand2, Clock, Settings, Sparkles } from 'lucide-react';
 import { useAgnesStore } from './store/agnesStore';
 import { AIChatPage } from './pages/AIChatPage';
@@ -44,7 +44,7 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className={`h-screen w-screen overflow-hidden ${theme === 'dark' ? 'dark' : ''}`}>
+    <div className={`h-full w-full overflow-hidden ${theme === 'dark' ? 'dark' : ''}`}>
       <div className="flex h-full">
         <nav className="w-16 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 flex flex-col items-center py-4 gap-2">
           {tabs.map((tab) => {
@@ -73,7 +73,41 @@ const App: React.FC = () => {
   );
 };
 
-const root = document.getElementById('app');
-if (root) {
-  createRoot(root).render(<App />);
+function renderStandalone() {
+  const root = document.getElementById('root');
+  if (!root) {
+    console.error('Root element not found');
+    return;
+  }
+
+  ReactDOM.createRoot(root).render(<App />);
+}
+
+function registerPlugin(api: any) {
+  const { registerTool, registerSidebarButton, openPluginWindow } = api;
+
+  registerTool({
+    id: 'plugin-agnes-ai',
+    name: 'Agnes AI',
+    iconName: 'Sparkles',
+    color: '#6366f1',
+    textColor: '#ffffff',
+    path: '/tools/plugin-agnes-ai',
+    component: App,
+  });
+
+  registerSidebarButton({
+    id: 'plugin-agnes-ai-btn',
+    icon: 'Sparkles',
+    label: 'Agnes AI',
+    onClick: () => {
+      openPluginWindow?.('plugin-agnes-ai');
+    },
+  });
+}
+
+const pluginData = (window as any).__PLUGIN_DATA__;
+
+if (pluginData) {
+  renderStandalone();
 }
