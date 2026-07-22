@@ -1,10 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import ReactDOM from 'react-dom/client';
-import { MessageSquare, Wand2, Clock, Settings, Sparkles } from 'lucide-react';
+import { MessageSquare, Wand2, Clock, Settings } from 'lucide-react';
 import { useAgnesStore } from './store/agnesStore';
 import { AIChatPage } from './pages/AIChatPage';
 import { RolePresetsPage } from './pages/RolePresetsPage';
-import { FontGeneratorPage } from './pages/FontGeneratorPage';
 import { HistoryPage } from './pages/HistoryPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { getPluginEnv } from './utils/environment';
@@ -21,7 +20,6 @@ const App: React.FC = () => {
   const tabs = [
     { id: 'chat' as const, label: 'AI 助手', icon: MessageSquare },
     { id: 'presets' as const, label: '角色预设', icon: Wand2 },
-    { id: 'font' as const, label: '字体生成', icon: Sparkles },
     { id: 'history' as const, label: '历史记录', icon: Clock },
     { id: 'settings' as const, label: '设置', icon: Settings },
   ];
@@ -32,8 +30,6 @@ const App: React.FC = () => {
         return <AIChatPage />;
       case 'presets':
         return <RolePresetsPage />;
-      case 'font':
-        return <FontGeneratorPage />;
       case 'history':
         return <HistoryPage />;
       case 'settings':
@@ -55,7 +51,7 @@ const App: React.FC = () => {
                 onClick={() => setActiveTab(tab.id)}
                 className={`flex flex-col items-center justify-center w-12 h-12 rounded-lg transition-colors ${
                   activeTab === tab.id
-                    ? 'bg-blue-500 text-white'
+                    ? 'bg-green-500 text-white'
                     : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
                 }`}
                 title={tab.label}
@@ -90,7 +86,7 @@ function registerPlugin(api: any) {
     id: 'plugin-agnes-ai',
     name: 'Agnes AI',
     iconName: 'Sparkles',
-    color: '#6366f1',
+    color: '#22c55e',
     textColor: '#ffffff',
     path: '/tools/plugin-agnes-ai',
     component: App,

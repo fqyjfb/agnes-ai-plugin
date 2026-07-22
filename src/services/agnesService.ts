@@ -1,5 +1,5 @@
 import { AgnesLocalStorage } from './agnesLocalStorage';
-import { AIConversation, AIMessage, RolePreset, ImageGenerationTask, VideoGenerationTask, FontGenerationTask, AgnesConfig } from '../types/agnes';
+import { AIConversation, AIMessage, RolePreset, ImageGenerationTask, VideoGenerationTask, AgnesConfig } from '../types/agnes';
 
 function generateId(): string {
   return Date.now().toString(36) + Math.random().toString(36).substr(2);
@@ -32,11 +32,6 @@ export class AgnesService {
 
   static async getAllConversations(): Promise<AIConversation[]> {
     return AgnesLocalStorage.getConversations();
-  }
-
-  static async getConversationById(id: string): Promise<AIConversation | null> {
-    const conversations = await this.getAllConversations();
-    return conversations.find(c => c.id === id) || null;
   }
 
   static async createConversation(title: string, rolePresetId?: string): Promise<AIConversation> {
@@ -87,7 +82,14 @@ export class AgnesService {
     };
     messages.push(newMessage);
     AgnesLocalStorage.setMessages(conversationId, messages);
-    await this.updateConversation(conversationId, { updated_at: new Date().toISOString() });
+    
+    const updates: Partial<AIConversation> = { updated_at: new Date().toISOString() };
+    if (messages.length === 1 && message.role === 'user') {
+      const firstLine = message.content.split('\n')[0];
+      const title = firstLine.substring(0, 12);
+      updates.title = title || '新对话';
+    }
+    await this.updateConversation(conversationId, updates);
     return newMessage;
   }
 
@@ -103,11 +105,6 @@ export class AgnesService {
 
   static async getAllRolePresets(): Promise<RolePreset[]> {
     return AgnesLocalStorage.getRolePresets();
-  }
-
-  static async getRolePresetById(id: string): Promise<RolePreset | undefined> {
-    const presets = await this.getAllRolePresets();
-    return presets.find(p => p.preset_id === id);
   }
 
   static async createRolePreset(preset: Omit<RolePreset, 'id' | 'created_at' | 'updated_at'>): Promise<RolePreset> {
@@ -203,38 +200,5 @@ export class AgnesService {
     const tasks = await this.getAllVideoTasks();
     const filtered = tasks.filter(t => t.id !== id);
     AgnesLocalStorage.setVideoTasks(filtered);
-  }
-
-  static async getAllFontTasks(): Promise<FontGenerationTask[]> {
-    return AgnesLocalStorage.getFontTasks();
-  }
-
-  static async createFontTask(task: Omit<FontGenerationTask, 'id' | 'created_at' | 'updated_at'>): Promise<FontGenerationTask> {
-    const tasks = await this.getAllFontTasks();
-    const newTask: FontGenerationTask = {
-      ...task,
-      id: generateId(),
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    };
-    tasks.unshift(newTask);
-    AgnesLocalStorage.setFontTasks(tasks);
-    return newTask;
-  }
-
-  static async updateFontTask(id: string, updates: Partial<FontGenerationTask>): Promise<FontGenerationTask | null> {
-    const tasks = await this.getAllFontTasks();
-    const index = tasks.findIndex(t => t.id === id);
-    if (index === -1) return null;
-    
-    tasks[index] = { ...tasks[index], ...updates, updated_at: new Date().toISOString() };
-    AgnesLocalStorage.setFontTasks(tasks);
-    return tasks[index];
-  }
-
-  static async deleteFontTask(id: string): Promise<void> {
-    const tasks = await this.getAllFontTasks();
-    const filtered = tasks.filter(t => t.id !== id);
-    AgnesLocalStorage.setFontTasks(filtered);
   }
 }

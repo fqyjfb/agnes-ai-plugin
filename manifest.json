@@ -7,7 +7,7 @@
   "entry": "dist/index.js",
   "icon": "Wand2",
   "iconUrl": "https://raw.githubusercontent.com/fqyjfb/toolbox-plugins-registry/main/icons/agnes-ai-plugin/icon.png",
-  "color": "#3b82f6",
+  "color": "#22c55e",
   "textColor": "#ffffff",
   "categories": ["AI", "工具"],
   "tags": ["ai", "chat", "font", "generator", "agnes"],

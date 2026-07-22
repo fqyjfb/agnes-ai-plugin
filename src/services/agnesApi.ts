@@ -1,7 +1,7 @@
 import { AgnesLocalStorage } from './agnesLocalStorage';
 import { log, error } from '../utils/logger';
 
-const DEFAULT_API_BASE = 'https://api.agnesai.com';
+const DEFAULT_API_BASE = 'https://apihub.agnes-ai.com/v1';
 
 async function getApiBaseUrl(): Promise<string> {
   const config = AgnesLocalStorage.getConfig();
@@ -26,6 +26,7 @@ async function getHeaders(): Promise<HeadersInit> {
 
 export interface ChatCompletionRequest {
   messages: Array<{ role: 'user' | 'assistant' | 'system'; content: string }>;
+  model?: string;
   temperature?: number;
   top_p?: number;
   max_tokens?: number;
@@ -81,24 +82,36 @@ export interface GetVideoTaskResponse {
   error_message?: string;
 }
 
-export async function chatCompletion(request: ChatCompletionRequest): Promise<ChatCompletionResponse> {
+export async function chatCompletion(request: ChatCompletionRequest): Promise<Response> {
   const baseUrl = await getApiBaseUrl();
   const headers = await getHeaders();
   
   log('Calling chat completion API', { prompt: request.messages[request.messages.length - 1]?.content?.slice(0, 50) });
   
-  const response = await fetch(`${baseUrl}/v1/chat/completions`, {
+  const body: Record<string, unknown> = {
+    model: request.model || 'agnes-2.0-flash',
+    messages: request.messages,
+    stream: true,
+    temperature: request.temperature,
+    max_tokens: request.max_tokens,
+  };
+
+  if (request.enable_thinking) {
+    body.chat_template_kwargs = { enable_thinking: true };
+  }
+  
+  const response = await fetch(`${baseUrl}/chat/completions`, {
     method: 'POST',
     headers,
-    body: JSON.stringify(request),
+    body: JSON.stringify(body),
   });
   
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.message || `Chat completion failed: ${response.status}`);
+    throw new Error(errorData.error || `Chat completion failed: ${response.status}`);
   }
   
-  return response.json();
+  return response;
 }
 
 export async function generateImage(request: GenerateImageRequest): Promise<GenerateImageResponse> {
@@ -107,18 +120,51 @@ export async function generateImage(request: GenerateImageRequest): Promise<Gene
   
   log('Calling image generation API', { prompt: request.prompt.slice(0, 50) });
   
-  const response = await fetch(`${baseUrl}/v1/images/generate`, {
+  const payload: Record<string, unknown> = {
+    model: request.model,
+    prompt: request.prompt,
+    size: request.size,
+    extra_body: {
+      response_format: 'url',
+    },
+  };
+
+  if (request.negative_prompt) {
+    payload.extra_body = {
+      ...payload.extra_body as Record<string, unknown>,
+      negative_prompt: request.negative_prompt,
+    };
+  }
+
+  if (request.seed) {
+    payload.seed = request.seed;
+  }
+
+  if (request.reference_images && request.reference_images.length > 0) {
+    payload.tags = ['img2img'];
+    payload.extra_body = {
+      ...payload.extra_body as Record<string, unknown>,
+      image: request.reference_images,
+    };
+  }
+  
+  const response = await fetch(`${baseUrl}/images/generations`, {
     method: 'POST',
     headers,
-    body: JSON.stringify(request),
+    body: JSON.stringify(payload),
   });
   
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.message || `Image generation failed: ${response.status}`);
+    throw new Error(errorData.error || `Image generation failed: ${response.status}`);
   }
   
-  return response.json();
+  const result = await response.json();
+  return {
+    task_id: result.id || '',
+    status: 'completed',
+    image_url: result.data?.[0]?.url,
+  };
 }
 
 export async function createVideoTask(request: CreateVideoTaskRequest): Promise<CreateVideoTaskResponse> {
@@ -127,18 +173,44 @@ export async function createVideoTask(request: CreateVideoTaskRequest): Promise<
   
   log('Calling video creation API', { prompt: request.prompt.slice(0, 50) });
   
-  const response = await fetch(`${baseUrl}/v1/videos/create`, {
+  const payload: Record<string, unknown> = {
+    model: request.model,
+    prompt: request.prompt,
+    height: request.height,
+    width: request.width,
+    num_frames: request.num_frames,
+    frame_rate: request.frame_rate,
+  };
+
+  if (request.negative_prompt) {
+    payload.negative_prompt = request.negative_prompt;
+  }
+
+  if (request.seed) {
+    payload.seed = request.seed;
+  }
+
+  if (request.reference_images && request.reference_images.length > 0) {
+    payload.image = request.reference_images;
+  }
+  
+  const response = await fetch(`${baseUrl}/videos`, {
     method: 'POST',
     headers,
-    body: JSON.stringify(request),
+    body: JSON.stringify(payload),
   });
   
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.message || `Video creation failed: ${response.status}`);
+    throw new Error(errorData.error || `Video creation failed: ${response.status}`);
   }
   
-  return response.json();
+  const result = await response.json();
+  return {
+    task_id: result.task_id || result.id,
+    status: (result.status || 'queued') as CreateVideoTaskResponse['status'],
+    progress: result.progress || 0,
+  };
 }
 
 export async function getVideoTask(taskId: string): Promise<GetVideoTaskResponse> {
@@ -147,61 +219,42 @@ export async function getVideoTask(taskId: string): Promise<GetVideoTaskResponse
   
   log('Calling video task status API', { taskId });
   
-  const response = await fetch(`${baseUrl}/v1/videos/${taskId}`, {
+  const response = await fetch(`${baseUrl}/videos/${taskId}`, {
     method: 'GET',
     headers,
   });
   
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.message || `Video task status failed: ${response.status}`);
+    throw new Error(errorData.error || `Video task status failed: ${response.status}`);
   }
   
-  return response.json();
+  const result = await response.json();
+  return {
+    task_id: result.task_id || taskId,
+    status: (result.status || 'unknown') as GetVideoTaskResponse['status'],
+    progress: result.progress || 0,
+    video_url: result.video_url || result.data?.url,
+    error_message: result.error,
+  };
 }
 
-export async function generateFontImage(request: {
-  prompt: string;
-  text_content: string;
-  size: string;
-  background_color: string;
-  seed?: number;
-  negative_prompt?: string;
-}): Promise<GenerateImageResponse> {
+export async function checkApiKey(apiKey?: string): Promise<{ valid: boolean; message: string }> {
   const baseUrl = await getApiBaseUrl();
-  const headers = await getHeaders();
-  
-  log('Calling font image generation API', { text: request.text_content });
-  
-  const response = await fetch(`${baseUrl}/v1/images/generate`, {
-    method: 'POST',
-    headers,
-    body: JSON.stringify({
-      prompt: request.prompt,
-      model: 'flux',
-      size: request.size,
-      seed: request.seed,
-      negative_prompt: request.negative_prompt,
-    }),
-  });
-  
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.message || `Font generation failed: ${response.status}`);
+  const headers: HeadersInit = {
+    'Content-Type': 'application/json',
+  };
+  const keyToUse = apiKey || await getApiKey();
+  if (keyToUse) {
+    headers['Authorization'] = `Bearer ${keyToUse}`;
   }
-  
-  return response.json();
-}
-
-export async function checkApiKey(): Promise<{ valid: boolean; message: string }> {
-  const baseUrl = await getApiBaseUrl();
-  const headers = await getHeaders();
   
   try {
-    const response = await fetch(`${baseUrl}/v1/chat/completions`, {
+    const response = await fetch(`${baseUrl}/chat/completions`, {
       method: 'POST',
       headers,
       body: JSON.stringify({
+        model: 'agnes-2.0-flash',
         messages: [{ role: 'user', content: 'ping' }],
         max_tokens: 1,
       }),

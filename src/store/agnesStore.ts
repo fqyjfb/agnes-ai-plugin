@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { Conversation, Message, RolePreset, ImageGenerationTask, VideoGenerationTask, FontGenerationTask } from '../types/agnes';
+import { Conversation, Message, RolePreset, ImageGenerationTask, VideoGenerationTask } from '../types/agnes';
 import { AgnesService } from '../services/agnesService';
 
 interface AgnesStore {
@@ -9,18 +9,16 @@ interface AgnesStore {
   rolePresets: RolePreset[];
   imageTasks: ImageGenerationTask[];
   videoTasks: VideoGenerationTask[];
-  fontTasks: FontGenerationTask[];
   isLoading: boolean;
-  activeTab: 'chat' | 'presets' | 'font' | 'history' | 'settings';
+  activeTab: 'chat' | 'presets' | 'history' | 'settings';
 
-  setActiveTab: (tab: 'chat' | 'presets' | 'font' | 'history' | 'settings') => void;
+  setActiveTab: (tab: 'chat' | 'presets' | 'history' | 'settings') => void;
   setLoading: (loading: boolean) => void;
   loadConversations: () => Promise<void>;
   loadMessages: (conversationId: string) => Promise<void>;
   loadRolePresets: () => Promise<void>;
   loadImageTasks: () => Promise<void>;
   loadVideoTasks: () => Promise<void>;
-  loadFontTasks: () => Promise<void>;
   createConversation: (title: string, rolePresetId?: string) => Promise<Conversation>;
   updateConversation: (id: string, updates: Partial<Conversation>) => Promise<void>;
   deleteConversation: (id: string) => Promise<void>;
@@ -36,9 +34,6 @@ interface AgnesStore {
   addVideoTask: (task: Omit<VideoGenerationTask, 'id' | 'created_at' | 'updated_at'>) => Promise<VideoGenerationTask>;
   updateVideoTask: (id: string, updates: Partial<VideoGenerationTask>) => Promise<void>;
   deleteVideoTask: (id: string) => Promise<void>;
-  addFontTask: (task: Omit<FontGenerationTask, 'id' | 'created_at' | 'updated_at'>) => Promise<FontGenerationTask>;
-  updateFontTask: (id: string, updates: Partial<FontGenerationTask>) => Promise<void>;
-  deleteFontTask: (id: string) => Promise<void>;
 }
 
 export const useAgnesStore = create<AgnesStore>((set, get) => ({
@@ -48,7 +43,6 @@ export const useAgnesStore = create<AgnesStore>((set, get) => ({
   rolePresets: [],
   imageTasks: [],
   videoTasks: [],
-  fontTasks: [],
   isLoading: false,
   activeTab: 'chat',
 
@@ -115,15 +109,6 @@ export const useAgnesStore = create<AgnesStore>((set, get) => ({
     }
   },
 
-  loadFontTasks: async () => {
-    try {
-      const tasks = await AgnesService.getAllFontTasks();
-      set({ fontTasks: tasks });
-    } catch {
-      set({ fontTasks: [] });
-    }
-  },
-
   createConversation: async (title, rolePresetId) => {
     const conversation = await AgnesService.createConversation(title, rolePresetId);
     set((state) => ({
@@ -161,8 +146,10 @@ export const useAgnesStore = create<AgnesStore>((set, get) => ({
 
   addMessage: async (conversationId, message) => {
     const newMessage = await AgnesService.addMessage(conversationId, message);
+    const conversations = await AgnesService.getAllConversations();
     set((state) => ({
       messages: [...state.messages, newMessage],
+      conversations,
     }));
     return newMessage;
   },
@@ -237,28 +224,6 @@ export const useAgnesStore = create<AgnesStore>((set, get) => ({
     await AgnesService.deleteVideoTask(id);
     set((state) => ({
       videoTasks: state.videoTasks.filter((t) => t.id !== id),
-    }));
-  },
-
-  addFontTask: async (task) => {
-    const newTask = await AgnesService.createFontTask(task);
-    set((state) => ({
-      fontTasks: [newTask, ...state.fontTasks],
-    }));
-    return newTask;
-  },
-
-  updateFontTask: async (id, updates) => {
-    await AgnesService.updateFontTask(id, updates);
-    set((state) => ({
-      fontTasks: state.fontTasks.map((t) => (t.id === id ? { ...t, ...updates } : t)),
-    }));
-  },
-
-  deleteFontTask: async (id) => {
-    await AgnesService.deleteFontTask(id);
-    set((state) => ({
-      fontTasks: state.fontTasks.filter((t) => t.id !== id),
     }));
   },
 }));

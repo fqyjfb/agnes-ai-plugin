@@ -1,38 +1,3 @@
-export interface FontStyleCategory {
-  id: string;
-  category_id: string;
-  name: string;
-  icon?: string;
-  sort_order: number;
-}
-
-export interface FontStyle {
-  id: string;
-  style_id: string;
-  category_id: string;
-  name: string;
-  prompt: string;
-  thumbnail: string;
-}
-
-export interface FontGenerationTask {
-  id: string;
-  user_id: string;
-  task_id: string;
-  font_style_id?: string;
-  text_content: string;
-  prompt: string;
-  size: string;
-  background_color: string;
-  seed?: number;
-  negative_prompt?: string;
-  image_url?: string;
-  status: 'pending' | 'generating' | 'completed' | 'failed';
-  error_message?: string;
-  created_at: string;
-  updated_at: string;
-}
-
 export interface AIConversation {
   id: string;
   user_id: string;
@@ -76,11 +41,7 @@ export interface ImageGenerationTask {
   prompt: string;
   model: string;
   size: string;
-  seed?: number;
-  negative_prompt?: string;
-  reference_images?: string[];
   image_url?: string;
-  source: 'chat' | 'font' | 'video';
   status: 'pending' | 'generating' | 'completed' | 'failed';
   error_message?: string;
   created_at: string;
@@ -95,11 +56,7 @@ export interface VideoGenerationTask {
   model: string;
   width: number;
   height: number;
-  num_frames: number;
-  frame_rate: number;
-  seed?: number;
-  negative_prompt?: string;
-  reference_images?: string[];
+  duration: number;
   video_url?: string;
   status: 'pending' | 'queued' | 'running' | 'processing' | 'completed' | 'failed' | 'cancelled';
   progress: number;
@@ -111,60 +68,26 @@ export interface VideoGenerationTask {
 export interface AgnesConfig {
   id: string;
   user_id: string;
-  api_key?: string;
+  api_key: string;
   theme: 'light' | 'dark';
   api_base_url: string;
   created_at: string;
   updated_at: string;
 }
 
-export interface ImageResult {
-  id: string;
-  url: string;
-  prompt: string;
-  size: string;
-  model: string;
-  seed?: number;
-  referenceImages?: string[];
-  createdAt: number;
-}
-
-export interface ChatCompletionOptions {
-  temperature: number;
-  top_p: number;
-  max_tokens: number;
-  enable_thinking: boolean;
-}
-
-export interface Message {
-  id: string;
-  role: 'user' | 'assistant' | 'system';
-  content: string;
-  thinking?: string;
-  created_at: string;
-}
-
-export interface Conversation {
-  id: string;
-  user_id: string;
-  title: string;
-  role_preset_id?: string | null;
-  messages: Message[];
-  created_at: string;
-  updated_at: string;
-}
-
-export interface VideoTask {
-  id: string;
-  user_id: string;
+export interface ImageGenerationResponse {
   task_id: string;
-  prompt: string;
-  status: VideoGenerationTask['status'];
-  progress: number;
-  video_url?: string;
-  size?: string;
-  seconds?: string;
-  error_message?: string;
-  created_at: string;
-  updated_at: string;
+  image_url?: string;
+  status: string;
 }
+
+export interface VideoGenerationResponse {
+  task_id: string;
+  video_url?: string;
+  status: string;
+  progress?: number;
+  error_message?: string;
+}
+
+export type Conversation = AIConversation;
+export type Message = AIMessage;

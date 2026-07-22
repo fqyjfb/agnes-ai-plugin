@@ -6,6 +6,8 @@ interface MenuItem {
   onClick: () => void;
   disabled?: boolean;
   separator?: boolean;
+  icon?: React.ReactNode;
+  className?: string;
 }
 
 interface ContextMenuProps {
@@ -76,9 +78,10 @@ export const ContextMenu: React.FC<ContextMenuProps> = ({
               item.disabled
                 ? 'text-gray-400 cursor-not-allowed'
                 : 'text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700'
-            }`}
+            } ${item.className || ''}`}
           >
-            {item.label}
+            {item.icon}
+            <span>{item.label}</span>
           </button>
         );
       })}

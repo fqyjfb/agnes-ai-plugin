@@ -12,8 +12,3 @@ export function getPluginEnv(): PluginEnv {
     appVersion: pluginData.appVersion ?? '1.0.0',
   };
 }
-
-export function getFontThumbnailUrl(thumbnailPath: string): string {
-  const baseUrl = window.__PLUGIN_BASE_URL__ || '';
-  return `${baseUrl}/tools/ai-chat/fonts/${thumbnailPath}`;
-}

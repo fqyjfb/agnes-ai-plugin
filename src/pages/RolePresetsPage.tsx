@@ -71,64 +71,64 @@ export const RolePresetsPage: React.FC = () => {
   };
 
   return (
-    <div className="h-full bg-white dark:bg-gray-900 p-6 overflow-y-auto">
+    <div className="h-full bg-white dark:bg-gray-900 p-3 overflow-y-auto">
       <div className="max-w-4xl mx-auto">
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between mb-4">
           <div>
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">角色预设</h2>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">管理 AI 助手的角色预设，自定义对话风格</p>
+            <h2 className="text-base font-semibold text-gray-900 dark:text-white">角色预设</h2>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">管理 AI 助手的角色预设</p>
           </div>
           <button
             onClick={handleOpenAddModal}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-green-500 text-white rounded-md text-xs hover:bg-green-500/90 transition-colors"
           >
-            <Plus size={18} />
+            <Plus size={16} />
             添加预设
           </button>
         </div>
 
-        <div className="grid gap-4">
+        <div className="grid gap-3">
           {rolePresets.map((preset) => (
             <div
               key={preset.preset_id}
-              className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800"
+              className="p-3 border border-gray-200 dark:border-gray-700 rounded-md bg-white dark:bg-gray-800"
             >
               <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
-                    <h3 className="font-medium text-gray-900 dark:text-white">{preset.name}</h3>
+                    <h3 className="text-sm font-medium text-gray-900 dark:text-white">{preset.name}</h3>
                     {preset.is_system && (
-                      <span className="px-2 py-0.5 text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded">
+                      <span className="px-1.5 py-0.5 text-[10px] bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded">
                         系统预设
                       </span>
                     )}
                   </div>
                   {preset.description && (
-                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{preset.description}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{preset.description}</p>
                   )}
-                  <div className="mt-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                    <p className="text-sm text-gray-600 dark:text-gray-300 font-mono">
-                      {preset.system_prompt.slice(0, 100)}
-                      {preset.system_prompt.length > 100 && '...'}
+                  <div className="mt-2 p-2 bg-gray-50 dark:bg-gray-700 rounded-md">
+                    <p className="text-xs text-gray-600 dark:text-gray-300 font-mono">
+                      {preset.system_prompt.slice(0, 80)}
+                      {preset.system_prompt.length > 80 && '...'}
                     </p>
                   </div>
                 </div>
-                <div className="flex items-center gap-2 ml-4">
+                <div className="flex items-center gap-1.5 ml-3">
                   {!preset.is_system && (
                     <>
                       <button
                         onClick={() => handleOpenEditModal(preset)}
-                        className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                        className="p-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                         title="编辑"
                       >
-                        <Edit size={18} className="text-gray-500" />
+                        <Edit size={16} className="text-gray-500" />
                       </button>
                       <button
                         onClick={() => setConfirmDelete(preset.preset_id)}
-                        className="p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                        className="p-1.5 rounded-md hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
                         title="删除"
                       >
-                        <Trash2 size={18} className="text-red-500" />
+                        <Trash2 size={16} className="text-red-500" />
                       </button>
                     </>
                   )}
@@ -139,57 +139,57 @@ export const RolePresetsPage: React.FC = () => {
         </div>
 
         {rolePresets.length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-gray-500 dark:text-gray-400">暂无角色预设，点击上方按钮添加</p>
+          <div className="text-center py-8">
+            <p className="text-sm text-gray-500 dark:text-gray-400">暂无角色预设，点击上方按钮添加</p>
           </div>
         )}
       </div>
 
       <Modal isOpen={showAddModal} onClose={() => setShowAddModal(false)} title="添加角色预设">
-        <div className="space-y-4">
+        <div className="space-y-3">
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">预设名称</label>
+            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">预设名称</label>
             <input
               type="text"
               value={formData.name}
               onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+              className="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
               placeholder="例如：文案助手"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">描述（可选）</label>
+            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">描述（可选）</label>
             <input
               type="text"
               value={formData.description}
               onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+              className="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
               placeholder="简短描述这个预设的用途"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">系统提示词</label>
+            <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">系统提示词</label>
             <textarea
               value={formData.system_prompt}
               onChange={(e) => setFormData(prev => ({ ...prev, system_prompt: e.target.value }))}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-              rows={5}
+              className="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+              rows={4}
               placeholder="定义 AI 的角色和行为..."
             />
           </div>
-          <div className="flex justify-end gap-3">
+          <div className="flex justify-end gap-2">
             <button
               onClick={() => setShowAddModal(false)}
-              className="px-4 py-2 text-sm text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+              className="px-3 py-1.5 text-xs text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
             >
               取消
             </button>
             <button
               onClick={handleSavePreset}
               disabled={!formData.name.trim() || !formData.system_prompt.trim()}
-              className="px-4 py-2 text-sm text-white bg-blue-500 rounded-lg hover:bg-blue-600 transition-colors disabled:opacity-50"
+              className="px-3 py-1.5 text-xs text-white bg-green-500 rounded-md hover:bg-green-500/90 transition-colors disabled:opacity-50"
             >
-              <Save size={16} className="inline mr-1" />
+              <Save size={14} className="inline mr-1" />
               保存
             </button>
           </div>
@@ -198,47 +198,47 @@ export const RolePresetsPage: React.FC = () => {
 
       {editingPreset && (
         <Modal isOpen={true} onClose={() => setEditingPreset(null)} title="编辑角色预设">
-          <div className="space-y-4">
+          <div className="space-y-3">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">预设名称</label>
+              <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">预设名称</label>
               <input
                 type="text"
                 value={editingPreset.name}
                 onChange={(e) => setEditingPreset(prev => prev ? { ...prev, name: e.target.value } : null)}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                className="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">描述（可选）</label>
+              <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">描述（可选）</label>
               <input
                 type="text"
                 value={editingPreset.description}
                 onChange={(e) => setEditingPreset(prev => prev ? { ...prev, description: e.target.value } : null)}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                className="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">系统提示词</label>
+              <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">系统提示词</label>
               <textarea
                 value={editingPreset.system_prompt}
                 onChange={(e) => setEditingPreset(prev => prev ? { ...prev, system_prompt: e.target.value } : null)}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-                rows={5}
+                className="w-full px-2 py-1.5 text-sm border border-gray-300 dark:border-gray-700 rounded-md focus:outline-none focus:ring-1 focus:ring-green-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                rows={4}
               />
             </div>
-            <div className="flex justify-end gap-3">
+            <div className="flex justify-end gap-2">
               <button
                 onClick={() => setEditingPreset(null)}
-                className="px-4 py-2 text-sm text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                className="px-3 py-1.5 text-xs text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
               >
                 取消
               </button>
               <button
-                onClick={handleUpdatePreset}
-                disabled={!editingPreset.name.trim() || !editingPreset.system_prompt.trim()}
-                className="px-4 py-2 text-sm text-white bg-blue-500 rounded-lg hover:bg-blue-600 transition-colors disabled:opacity-50"
-              >
-                <Save size={16} className="inline mr-1" />
+              onClick={handleUpdatePreset}
+              disabled={!editingPreset.name.trim() || !editingPreset.system_prompt.trim()}
+              className="px-3 py-1.5 text-xs text-white bg-green-500 rounded-md hover:bg-green-500/90 transition-colors disabled:opacity-50"
+            >
+                <Save size={14} className="inline mr-1" />
                 保存
               </button>
             </div>
