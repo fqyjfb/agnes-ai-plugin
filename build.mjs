@@ -21,7 +21,7 @@ async function runBuild() {
     build: {
       outDir: path.resolve(__dirname, 'dist'),
       emptyOutDir: true,
-      minify: false,
+      minify: true,
       rollupOptions: {
         input: path.resolve(__dirname, 'src/index.tsx'),
         output: { 
