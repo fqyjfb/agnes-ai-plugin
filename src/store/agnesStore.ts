@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { Conversation, Message, RolePreset, ImageGenerationTask, VideoGenerationTask, FontGenerationTask } from '../types/agnes';
-import { AgnesService } from '../services/AgnesService';
+import { AgnesService } from '../services/agnesService';
 
 interface AgnesStore {
   conversations: Conversation[];

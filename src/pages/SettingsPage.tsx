@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Settings, Save, CheckCircle, AlertCircle } from 'lucide-react';
-import { AgnesService } from '../services/AgnesService';
+import { AgnesService } from '../services/agnesService';
 import { checkApiKey } from '../services/agnesApi';
 
 export const SettingsPage: React.FC = () => {
