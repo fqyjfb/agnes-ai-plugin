@@ -208,7 +208,7 @@ export function HistoryPage({ onNavigate, userId = 'local-user' }: HistoryPagePr
               onClick={() => setActiveTab(tab.id as typeof activeTab)}
               className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 activeTab === tab.id
-                  ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400'
+                  ? 'bg-primary/10 dark:bg-primary/20 text-primary'
                   : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
               }`}
             >
@@ -216,7 +216,7 @@ export function HistoryPage({ onNavigate, userId = 'local-user' }: HistoryPagePr
               {tab.label}
               <span className={`px-2 py-0.5 rounded-full text-xs ${
                 activeTab === tab.id
-                  ? 'bg-purple-600 text-white dark:bg-purple-500'
+                  ? 'bg-primary text-white'
                   : 'bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-400'
               }`}>
                 {tab.count}
@@ -343,7 +343,7 @@ export function HistoryPage({ onNavigate, userId = 'local-user' }: HistoryPagePr
                     <div className="w-24 h-24 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center flex-shrink-0">
                       {task.video_url ? (
                         <div className="relative">
-                          <Play size={24} className="text-purple-600" />
+                          <Play size={24} className="text-primary" />
                         </div>
                       ) : (
                         <Video size={24} className="text-gray-400" />
@@ -364,9 +364,9 @@ export function HistoryPage({ onNavigate, userId = 'local-user' }: HistoryPagePr
                           </div>
                           <div className="w-full h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                             <div
-                              className="h-full bg-purple-600 transition-all"
-                              style={{ width: `${task.progress}%` }}
-                            />
+                            className="h-full bg-primary transition-all"
+                            style={{ width: `${task.progress}%` }}
+                          />
                           </div>
                         </div>
                       )}
@@ -377,14 +377,14 @@ export function HistoryPage({ onNavigate, userId = 'local-user' }: HistoryPagePr
                         {task.video_url && (
                           <>
                             <button
-                              onClick={() => handleDownload(task.video_url, `video-${task.id}.mp4`)}
-                              className="px-3 py-1.5 text-sm font-medium text-white bg-purple-600 rounded-lg hover:bg-purple-700 transition-colors flex items-center gap-1"
+                              onClick={() => handleDownload(task.video_url!, `video-${task.id}.mp4`)}
+                              className="px-3 py-1.5 text-sm font-medium text-white bg-primary rounded-lg hover:bg-primary/90 transition-colors flex items-center gap-1"
                             >
                               <Download size={14} />
                               下载
                             </button>
                             <button
-                              onClick={() => handleCopy(task.video_url, task.id)}
+                              onClick={() => handleCopy(task.video_url!, task.id)}
                               className="px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors flex items-center gap-1"
                             >
                               {copiedId === task.id ? (
@@ -473,7 +473,7 @@ export function HistoryPage({ onNavigate, userId = 'local-user' }: HistoryPagePr
                         {task.image_url && (
                           <>
                             <button
-                              onClick={() => handleCopy(task.image_url, task.id)}
+                              onClick={() => handleCopy(task.image_url!, task.id)}
                               className="p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                               title="复制链接"
                             >
@@ -484,7 +484,7 @@ export function HistoryPage({ onNavigate, userId = 'local-user' }: HistoryPagePr
                               )}
                             </button>
                             <button
-                              onClick={() => handleDownload(task.image_url, `font-${task.id}.png`)}
+                              onClick={() => handleDownload(task.image_url!, `font-${task.id}.png`)}
                               className="p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                               title="下载"
                             >

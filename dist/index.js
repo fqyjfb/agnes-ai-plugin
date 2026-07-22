@@ -917,7 +917,7 @@
    * This source code is licensed under the MIT license found in the
    * LICENSE file in the root directory of this source tree.
    */
-  var Scheduler = schedulerExports, React$2 = reactExports, ReactDOM$1 = reactDomExports;
+  var Scheduler = schedulerExports, React$2 = reactExports, ReactDOM = reactDomExports;
   function formatProdErrorMessage(code2) {
     var url = "https://react.dev/errors/" + code2;
     if (1 < arguments.length) {
@@ -1093,7 +1093,7 @@
       }
     return null;
   }
-  var isArrayImpl = Array.isArray, ReactSharedInternals = React$2.__CLIENT_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE, ReactDOMSharedInternals = ReactDOM$1.__DOM_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE, sharedNotPendingObject = {
+  var isArrayImpl = Array.isArray, ReactSharedInternals = React$2.__CLIENT_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE, ReactDOMSharedInternals = ReactDOM.__DOM_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE, sharedNotPendingObject = {
     pending: false,
     data: null,
     method: null,
@@ -12443,7 +12443,678 @@
     client.exports = reactDomClient_production;
   }
   var clientExports = client.exports;
-  const ReactDOM = /* @__PURE__ */ getDefaultExportFromCjs(clientExports);
+  const __vite_import_meta_env__$1 = {};
+  const createStoreImpl = (createState2) => {
+    let state;
+    const listeners = /* @__PURE__ */ new Set();
+    const setState = (partial, replace2) => {
+      const nextState = typeof partial === "function" ? partial(state) : partial;
+      if (!Object.is(nextState, state)) {
+        const previousState = state;
+        state = (replace2 != null ? replace2 : typeof nextState !== "object" || nextState === null) ? nextState : Object.assign({}, state, nextState);
+        listeners.forEach((listener) => listener(state, previousState));
+      }
+    };
+    const getState = () => state;
+    const getInitialState = () => initialState;
+    const subscribe = (listener) => {
+      listeners.add(listener);
+      return () => listeners.delete(listener);
+    };
+    const destroy = () => {
+      if ((__vite_import_meta_env__$1 ? "production" : void 0) !== "production") {
+        console.warn(
+          "[DEPRECATED] The `destroy` method will be unsupported in a future version. Instead use unsubscribe function returned by subscribe. Everything will be garbage-collected if store is garbage-collected."
+        );
+      }
+      listeners.clear();
+    };
+    const api = { setState, getState, getInitialState, subscribe, destroy };
+    const initialState = state = createState2(setState, getState, api);
+    return api;
+  };
+  const createStore = (createState2) => createState2 ? createStoreImpl(createState2) : createStoreImpl;
+  var withSelector = { exports: {} };
+  var withSelector_production = {};
+  var shim$2 = { exports: {} };
+  var useSyncExternalStoreShim_production = {};
+  /**
+   * @license React
+   * use-sync-external-store-shim.production.js
+   *
+   * Copyright (c) Meta Platforms, Inc. and affiliates.
+   *
+   * This source code is licensed under the MIT license found in the
+   * LICENSE file in the root directory of this source tree.
+   */
+  var React$1 = reactExports;
+  function is$1(x, y) {
+    return x === y && (0 !== x || 1 / x === 1 / y) || x !== x && y !== y;
+  }
+  var objectIs$1 = "function" === typeof Object.is ? Object.is : is$1, useState = React$1.useState, useEffect$1 = React$1.useEffect, useLayoutEffect = React$1.useLayoutEffect, useDebugValue$2 = React$1.useDebugValue;
+  function useSyncExternalStore$2(subscribe, getSnapshot) {
+    var value = getSnapshot(), _useState = useState({ inst: { value, getSnapshot } }), inst = _useState[0].inst, forceUpdate = _useState[1];
+    useLayoutEffect(
+      function() {
+        inst.value = value;
+        inst.getSnapshot = getSnapshot;
+        checkIfSnapshotChanged(inst) && forceUpdate({ inst });
+      },
+      [subscribe, value, getSnapshot]
+    );
+    useEffect$1(
+      function() {
+        checkIfSnapshotChanged(inst) && forceUpdate({ inst });
+        return subscribe(function() {
+          checkIfSnapshotChanged(inst) && forceUpdate({ inst });
+        });
+      },
+      [subscribe]
+    );
+    useDebugValue$2(value);
+    return value;
+  }
+  function checkIfSnapshotChanged(inst) {
+    var latestGetSnapshot = inst.getSnapshot;
+    inst = inst.value;
+    try {
+      var nextValue = latestGetSnapshot();
+      return !objectIs$1(inst, nextValue);
+    } catch (error) {
+      return true;
+    }
+  }
+  function useSyncExternalStore$1(subscribe, getSnapshot) {
+    return getSnapshot();
+  }
+  var shim$1 = "undefined" === typeof window || "undefined" === typeof window.document || "undefined" === typeof window.document.createElement ? useSyncExternalStore$1 : useSyncExternalStore$2;
+  useSyncExternalStoreShim_production.useSyncExternalStore = void 0 !== React$1.useSyncExternalStore ? React$1.useSyncExternalStore : shim$1;
+  {
+    shim$2.exports = useSyncExternalStoreShim_production;
+  }
+  var shimExports = shim$2.exports;
+  /**
+   * @license React
+   * use-sync-external-store-shim/with-selector.production.js
+   *
+   * Copyright (c) Meta Platforms, Inc. and affiliates.
+   *
+   * This source code is licensed under the MIT license found in the
+   * LICENSE file in the root directory of this source tree.
+   */
+  var React = reactExports, shim = shimExports;
+  function is(x, y) {
+    return x === y && (0 !== x || 1 / x === 1 / y) || x !== x && y !== y;
+  }
+  var objectIs = "function" === typeof Object.is ? Object.is : is, useSyncExternalStore = shim.useSyncExternalStore, useRef = React.useRef, useEffect = React.useEffect, useMemo = React.useMemo, useDebugValue$1 = React.useDebugValue;
+  withSelector_production.useSyncExternalStoreWithSelector = function(subscribe, getSnapshot, getServerSnapshot, selector, isEqual) {
+    var instRef = useRef(null);
+    if (null === instRef.current) {
+      var inst = { hasValue: false, value: null };
+      instRef.current = inst;
+    } else inst = instRef.current;
+    instRef = useMemo(
+      function() {
+        function memoizedSelector(nextSnapshot) {
+          if (!hasMemo) {
+            hasMemo = true;
+            memoizedSnapshot = nextSnapshot;
+            nextSnapshot = selector(nextSnapshot);
+            if (void 0 !== isEqual && inst.hasValue) {
+              var currentSelection = inst.value;
+              if (isEqual(currentSelection, nextSnapshot))
+                return memoizedSelection = currentSelection;
+            }
+            return memoizedSelection = nextSnapshot;
+          }
+          currentSelection = memoizedSelection;
+          if (objectIs(memoizedSnapshot, nextSnapshot)) return currentSelection;
+          var nextSelection = selector(nextSnapshot);
+          if (void 0 !== isEqual && isEqual(currentSelection, nextSelection))
+            return memoizedSnapshot = nextSnapshot, currentSelection;
+          memoizedSnapshot = nextSnapshot;
+          return memoizedSelection = nextSelection;
+        }
+        var hasMemo = false, memoizedSnapshot, memoizedSelection, maybeGetServerSnapshot = void 0 === getServerSnapshot ? null : getServerSnapshot;
+        return [
+          function() {
+            return memoizedSelector(getSnapshot());
+          },
+          null === maybeGetServerSnapshot ? void 0 : function() {
+            return memoizedSelector(maybeGetServerSnapshot());
+          }
+        ];
+      },
+      [getSnapshot, getServerSnapshot, selector, isEqual]
+    );
+    var value = useSyncExternalStore(subscribe, instRef[0], instRef[1]);
+    useEffect(
+      function() {
+        inst.hasValue = true;
+        inst.value = value;
+      },
+      [value]
+    );
+    useDebugValue$1(value);
+    return value;
+  };
+  {
+    withSelector.exports = withSelector_production;
+  }
+  var withSelectorExports = withSelector.exports;
+  const useSyncExternalStoreExports = /* @__PURE__ */ getDefaultExportFromCjs(withSelectorExports);
+  const __vite_import_meta_env__ = {};
+  const { useDebugValue } = React$4;
+  const { useSyncExternalStoreWithSelector } = useSyncExternalStoreExports;
+  let didWarnAboutEqualityFn = false;
+  const identity = (arg) => arg;
+  function useStore(api, selector = identity, equalityFn) {
+    if ((__vite_import_meta_env__ ? "production" : void 0) !== "production" && equalityFn && !didWarnAboutEqualityFn) {
+      console.warn(
+        "[DEPRECATED] Use `createWithEqualityFn` instead of `create` or use `useStoreWithEqualityFn` instead of `useStore`. They can be imported from 'zustand/traditional'. https://github.com/pmndrs/zustand/discussions/1937"
+      );
+      didWarnAboutEqualityFn = true;
+    }
+    const slice = useSyncExternalStoreWithSelector(
+      api.subscribe,
+      api.getState,
+      api.getServerState || api.getInitialState,
+      selector,
+      equalityFn
+    );
+    useDebugValue(slice);
+    return slice;
+  }
+  const createImpl = (createState2) => {
+    if ((__vite_import_meta_env__ ? "production" : void 0) !== "production" && typeof createState2 !== "function") {
+      console.warn(
+        "[DEPRECATED] Passing a vanilla store will be unsupported in a future version. Instead use `import { useStore } from 'zustand'`."
+      );
+    }
+    const api = typeof createState2 === "function" ? createStore(createState2) : createState2;
+    const useBoundStore = (selector, equalityFn) => useStore(api, selector, equalityFn);
+    Object.assign(useBoundStore, api);
+    return useBoundStore;
+  };
+  const create$1 = (createState2) => createImpl;
+  const STORAGE_KEYS = {
+    CONVERSATIONS: "agnes_conversations",
+    IMAGE_HISTORY: "agnes_image_history",
+    VIDEO_TASKS: "agnes_video_tasks",
+    FONT_TASKS: "agnes_font_tasks",
+    ROLE_PRESETS: "agnes_role_presets",
+    API_KEY: "agnes_api_key",
+    API_BASE_URL: "agnes_api_base_url",
+    THEME: "agnes_theme"
+  };
+  function getStorageKey(userId, key) {
+    return `${key}_${userId}`;
+  }
+  const agnesLocalStorage = {
+    saveConversations(userId, conversations) {
+      localStorage.setItem(getStorageKey(userId, STORAGE_KEYS.CONVERSATIONS), JSON.stringify(conversations));
+    },
+    getConversations(userId) {
+      const data = localStorage.getItem(getStorageKey(userId, STORAGE_KEYS.CONVERSATIONS));
+      return data ? JSON.parse(data) : [];
+    },
+    saveImageHistory(userId, history) {
+      localStorage.setItem(getStorageKey(userId, STORAGE_KEYS.IMAGE_HISTORY), JSON.stringify(history));
+    },
+    getImageHistory(userId) {
+      const data = localStorage.getItem(getStorageKey(userId, STORAGE_KEYS.IMAGE_HISTORY));
+      return data ? JSON.parse(data) : [];
+    },
+    saveVideoTasks(userId, tasks) {
+      localStorage.setItem(getStorageKey(userId, STORAGE_KEYS.VIDEO_TASKS), JSON.stringify(tasks));
+    },
+    getVideoTasks(userId) {
+      const data = localStorage.getItem(getStorageKey(userId, STORAGE_KEYS.VIDEO_TASKS));
+      return data ? JSON.parse(data) : [];
+    },
+    saveFontTasks(userId, tasks) {
+      localStorage.setItem(getStorageKey(userId, STORAGE_KEYS.FONT_TASKS), JSON.stringify(tasks));
+    },
+    getFontTasks(userId) {
+      const data = localStorage.getItem(getStorageKey(userId, STORAGE_KEYS.FONT_TASKS));
+      return data ? JSON.parse(data) : [];
+    },
+    saveRolePresets(userId, presets) {
+      localStorage.setItem(getStorageKey(userId, STORAGE_KEYS.ROLE_PRESETS), JSON.stringify(presets));
+    },
+    getRolePresets(userId) {
+      const data = localStorage.getItem(getStorageKey(userId, STORAGE_KEYS.ROLE_PRESETS));
+      return data ? JSON.parse(data) : [];
+    },
+    saveApiKey(userId, apiKey) {
+      localStorage.setItem(getStorageKey(userId, STORAGE_KEYS.API_KEY), apiKey);
+    },
+    getApiKey(userId) {
+      return localStorage.getItem(getStorageKey(userId, STORAGE_KEYS.API_KEY)) || "";
+    },
+    saveApiBaseUrl(userId, url) {
+      localStorage.setItem(getStorageKey(userId, STORAGE_KEYS.API_BASE_URL), url);
+    },
+    getApiBaseUrl(userId) {
+      return localStorage.getItem(getStorageKey(userId, STORAGE_KEYS.API_BASE_URL)) || "https://apihub.agnes-ai.com";
+    },
+    saveTheme(userId, theme) {
+      localStorage.setItem(getStorageKey(userId, STORAGE_KEYS.THEME), theme);
+    },
+    getTheme(userId) {
+      return localStorage.getItem(getStorageKey(userId, STORAGE_KEYS.THEME)) || "light";
+    },
+    clearUserData(userId) {
+      Object.values(STORAGE_KEYS).forEach((key) => {
+        localStorage.removeItem(getStorageKey(userId, key));
+      });
+    }
+  };
+  const defaultRolePresets = [
+    {
+      id: "copywriter",
+      user_id: void 0,
+      preset_id: "copywriter",
+      name: "文案助手",
+      description: "专业的文案创作助手，帮助您撰写高质量的营销文案、产品描述和广告文案",
+      system_prompt: "您是一名专业的文案策划师，擅长撰写各种类型的营销文案。请根据用户的需求，创作出吸引人、有说服力的文案内容。",
+      icon: "✍️",
+      is_system: true,
+      is_default: false,
+      created_at: (/* @__PURE__ */ new Date()).toISOString(),
+      updated_at: (/* @__PURE__ */ new Date()).toISOString()
+    },
+    {
+      id: "translator",
+      user_id: void 0,
+      preset_id: "translator",
+      name: "翻译助手",
+      description: "多语言翻译专家，支持多种语言互译，准确传达原文含义",
+      system_prompt: "您是一名专业的翻译专家，精通多种语言。请准确翻译用户提供的内容，保持原文含义不变，并确保译文流畅自然。",
+      icon: "🌍",
+      is_system: true,
+      is_default: false,
+      created_at: (/* @__PURE__ */ new Date()).toISOString(),
+      updated_at: (/* @__PURE__ */ new Date()).toISOString()
+    },
+    {
+      id: "xiaohongshu",
+      user_id: void 0,
+      preset_id: "xiaohongshu",
+      name: "小红书助手",
+      description: "小红书风格内容创作专家，帮助您撰写吸睛的种草笔记",
+      system_prompt: "您是一名小红书内容创作专家，精通小红书平台的内容风格和热门话题。请根据用户提供的产品或主题，创作出符合小红书风格的种草笔记。",
+      icon: "📕",
+      is_system: true,
+      is_default: false,
+      created_at: (/* @__PURE__ */ new Date()).toISOString(),
+      updated_at: (/* @__PURE__ */ new Date()).toISOString()
+    },
+    {
+      id: "social-title",
+      user_id: void 0,
+      preset_id: "social-title",
+      name: "社媒标题助手",
+      description: "社交媒体标题创作专家，帮您打造高点击率的标题",
+      system_prompt: "您是一名社交媒体运营专家，擅长创作吸引人的标题。请根据用户提供的内容主题，生成多个吸引人的社交媒体标题选项。",
+      icon: "📣",
+      is_system: true,
+      is_default: false,
+      created_at: (/* @__PURE__ */ new Date()).toISOString(),
+      updated_at: (/* @__PURE__ */ new Date()).toISOString()
+    }
+  ];
+  const useAgnesStore = create$1()((set, get) => ({
+    userId: "local-user",
+    conversations: [],
+    activeConversationId: null,
+    rolePresets: defaultRolePresets,
+    activeRolePresetId: null,
+    imageGeneration: {
+      isGenerating: false,
+      result: null,
+      history: []
+    },
+    videoGeneration: {
+      tasks: []
+    },
+    fontGeneration: {
+      tasks: []
+    },
+    apiKey: "",
+    theme: "light",
+    apiBaseUrl: "https://apihub.agnes-ai.com",
+    setUserId: (userId) => {
+      set({ userId });
+    },
+    loadUserData: (userId) => {
+      const localConversations = agnesLocalStorage.getConversations(userId);
+      const localImageHistory = agnesLocalStorage.getImageHistory(userId);
+      const localVideoTasks = agnesLocalStorage.getVideoTasks(userId);
+      const localFontTasks = agnesLocalStorage.getFontTasks(userId);
+      const localRolePresets = agnesLocalStorage.getRolePresets(userId);
+      const localApiKey = agnesLocalStorage.getApiKey(userId);
+      const localApiBaseUrl = agnesLocalStorage.getApiBaseUrl(userId);
+      const localTheme = agnesLocalStorage.getTheme(userId);
+      const mergedPresets = [
+        ...defaultRolePresets,
+        ...localRolePresets.filter((p) => !defaultRolePresets.some((dp) => dp.id === p.id))
+      ];
+      set({
+        userId,
+        conversations: localConversations,
+        rolePresets: mergedPresets,
+        imageGeneration: {
+          isGenerating: false,
+          result: null,
+          history: localImageHistory
+        },
+        videoGeneration: {
+          tasks: localVideoTasks
+        },
+        fontGeneration: {
+          tasks: localFontTasks
+        },
+        apiKey: localApiKey,
+        apiBaseUrl: localApiBaseUrl,
+        theme: localTheme
+      });
+    },
+    saveUserData: () => {
+      const state = get();
+      agnesLocalStorage.saveConversations(state.userId, state.conversations);
+      agnesLocalStorage.saveImageHistory(state.userId, state.imageGeneration.history);
+      agnesLocalStorage.saveVideoTasks(state.userId, state.videoGeneration.tasks);
+      agnesLocalStorage.saveFontTasks(state.userId, state.fontGeneration.tasks);
+      const userPresets = state.rolePresets.filter((p) => !p.is_system);
+      agnesLocalStorage.saveRolePresets(state.userId, userPresets);
+      agnesLocalStorage.saveApiKey(state.userId, state.apiKey);
+      agnesLocalStorage.saveApiBaseUrl(state.userId, state.apiBaseUrl);
+      agnesLocalStorage.saveTheme(state.userId, state.theme);
+    },
+    addMessage: (conversationId, message) => {
+      set((state) => ({
+        conversations: state.conversations.map(
+          (conv) => conv.id === conversationId ? { ...conv, messages: [...conv.messages, message], updated_at: (/* @__PURE__ */ new Date()).toISOString() } : conv
+        )
+      }));
+      get().saveUserData();
+    },
+    updateMessage: (conversationId, messageId, content2, thinking) => {
+      set((state) => ({
+        conversations: state.conversations.map(
+          (conv) => conv.id === conversationId ? {
+            ...conv,
+            messages: conv.messages.map(
+              (msg) => msg.id === messageId ? { ...msg, content: content2, thinking, updated_at: (/* @__PURE__ */ new Date()).toISOString() } : msg
+            ),
+            updated_at: (/* @__PURE__ */ new Date()).toISOString()
+          } : conv
+        )
+      }));
+      get().saveUserData();
+    },
+    deleteMessage: (conversationId, messageId) => {
+      set((state) => ({
+        conversations: state.conversations.map(
+          (conv) => conv.id === conversationId ? { ...conv, messages: conv.messages.filter((msg) => msg.id !== messageId), updated_at: (/* @__PURE__ */ new Date()).toISOString() } : conv
+        )
+      }));
+      get().saveUserData();
+    },
+    createConversation: (title, rolePresetId = null) => {
+      const state = get();
+      const newConversation = {
+        id: `conv-${Date.now()}`,
+        user_id: state.userId,
+        title,
+        role_preset_id: rolePresetId,
+        messages: [],
+        created_at: (/* @__PURE__ */ new Date()).toISOString(),
+        updated_at: (/* @__PURE__ */ new Date()).toISOString()
+      };
+      set({
+        conversations: [newConversation, ...state.conversations],
+        activeConversationId: newConversation.id
+      });
+      get().saveUserData();
+      return newConversation;
+    },
+    setActiveConversation: (conversationId) => {
+      set({ activeConversationId: conversationId });
+    },
+    deleteConversation: (conversationId) => {
+      set((state) => {
+        var _a;
+        return {
+          conversations: state.conversations.filter((conv) => conv.id !== conversationId),
+          activeConversationId: state.activeConversationId === conversationId ? ((_a = state.conversations.find((conv) => conv.id !== conversationId)) == null ? void 0 : _a.id) || null : state.activeConversationId
+        };
+      });
+      get().saveUserData();
+    },
+    updateConversationTitle: (conversationId, title) => {
+      set((state) => ({
+        conversations: state.conversations.map(
+          (conv) => conv.id === conversationId ? { ...conv, title, updated_at: (/* @__PURE__ */ new Date()).toISOString() } : conv
+        )
+      }));
+      get().saveUserData();
+    },
+    addRolePreset: (preset) => {
+      const state = get();
+      const newPreset = {
+        ...preset,
+        id: `preset-${Date.now()}`,
+        user_id: state.userId,
+        created_at: (/* @__PURE__ */ new Date()).toISOString(),
+        updated_at: (/* @__PURE__ */ new Date()).toISOString()
+      };
+      set((state2) => ({ rolePresets: [...state2.rolePresets, newPreset] }));
+      get().saveUserData();
+    },
+    updateRolePreset: (presetId, updates) => {
+      set((state) => ({
+        rolePresets: state.rolePresets.map(
+          (preset) => preset.id === presetId ? { ...preset, ...updates, updated_at: (/* @__PURE__ */ new Date()).toISOString() } : preset
+        )
+      }));
+      get().saveUserData();
+    },
+    deleteRolePreset: (presetId) => {
+      set((state) => ({
+        rolePresets: state.rolePresets.filter((preset) => preset.id !== presetId),
+        activeRolePresetId: state.activeRolePresetId === presetId ? null : state.activeRolePresetId
+      }));
+      get().saveUserData();
+    },
+    setActiveRolePreset: (presetId) => {
+      set({ activeRolePresetId: presetId });
+    },
+    setImageGenerating: (isGenerating) => {
+      set((state) => ({ imageGeneration: { ...state.imageGeneration, isGenerating } }));
+    },
+    setImageResult: (result) => {
+      set((state) => ({ imageGeneration: { ...state.imageGeneration, result } }));
+    },
+    addImageToHistory: (result) => {
+      set((state) => ({
+        imageGeneration: {
+          ...state.imageGeneration,
+          history: [result, ...state.imageGeneration.history]
+        }
+      }));
+      get().saveUserData();
+    },
+    removeImageFromHistory: (id) => {
+      set((state) => ({
+        imageGeneration: {
+          ...state.imageGeneration,
+          history: state.imageGeneration.history.filter((img) => img.id !== id)
+        }
+      }));
+      get().saveUserData();
+    },
+    clearImageHistory: () => {
+      set((state) => ({ imageGeneration: { ...state.imageGeneration, history: [] } }));
+      get().saveUserData();
+    },
+    addVideoTask: (task) => {
+      set((state) => ({ videoGeneration: { ...state.videoGeneration, tasks: [task, ...state.videoGeneration.tasks] } }));
+      get().saveUserData();
+    },
+    updateVideoTask: (taskId, updates) => {
+      set((state) => ({
+        videoGeneration: {
+          ...state.videoGeneration,
+          tasks: state.videoGeneration.tasks.map(
+            (task) => task.id === taskId ? { ...task, ...updates, updated_at: (/* @__PURE__ */ new Date()).toISOString() } : task
+          )
+        }
+      }));
+      get().saveUserData();
+    },
+    removeVideoTask: (taskId) => {
+      set((state) => ({
+        videoGeneration: {
+          ...state.videoGeneration,
+          tasks: state.videoGeneration.tasks.filter((task) => task.id !== taskId)
+        }
+      }));
+      get().saveUserData();
+    },
+    addFontTask: (task) => {
+      set((state) => ({ fontGeneration: { ...state.fontGeneration, tasks: [task, ...state.fontGeneration.tasks] } }));
+      get().saveUserData();
+    },
+    updateFontTask: (taskId, updates) => {
+      set((state) => ({
+        fontGeneration: {
+          ...state.fontGeneration,
+          tasks: state.fontGeneration.tasks.map(
+            (task) => task.id === taskId ? { ...task, ...updates, updated_at: (/* @__PURE__ */ new Date()).toISOString() } : task
+          )
+        }
+      }));
+      get().saveUserData();
+    },
+    removeFontTask: (taskId) => {
+      set((state) => ({
+        fontGeneration: {
+          ...state.fontGeneration,
+          tasks: state.fontGeneration.tasks.filter((task) => task.id !== taskId)
+        }
+      }));
+      get().saveUserData();
+    },
+    setApiKey: (apiKey) => {
+      set({ apiKey });
+      get().saveUserData();
+    },
+    setTheme: (theme) => {
+      set({ theme });
+      get().saveUserData();
+    },
+    setApiBaseUrl: (url) => {
+      set({ apiBaseUrl: url });
+      get().saveUserData();
+    }
+  }));
+  function getApiKey() {
+    return useAgnesStore.getState().apiKey;
+  }
+  function getApiBaseUrl() {
+    return useAgnesStore.getState().apiBaseUrl;
+  }
+  async function request(url, options2) {
+    const apiKey = getApiKey();
+    if (!apiKey) {
+      throw new Error("请先配置 Agnes AI API Key");
+    }
+    const baseUrl = getApiBaseUrl();
+    const response = await fetch(`${baseUrl}/v1${url}`, {
+      ...options2,
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${apiKey}`,
+        ...options2.headers
+      }
+    });
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}));
+      throw new Error(error.error || `请求失败: ${response.status}`);
+    }
+    return response;
+  }
+  async function generateImage(prompt, model = "agnes-image-2.1-flash", size = "1024x1024", extraBody = {}) {
+    const response = await request("/images/generations", {
+      method: "POST",
+      body: JSON.stringify({
+        prompt,
+        model,
+        size,
+        extra_body: {
+          response_format: "url",
+          ...extraBody
+        }
+      })
+    });
+    const data = await response.json();
+    return { url: data.data[0].url };
+  }
+  async function generateVideo(prompt, model = "agnes-video-v2.0", options2 = {}) {
+    const response = await request("/v1/videos/generations", {
+      method: "POST",
+      body: JSON.stringify({
+        prompt,
+        model,
+        ...options2
+      })
+    });
+    const data = await response.json();
+    return {
+      task_id: data.task_id,
+      status: data.status || "queued",
+      progress: data.progress || 0,
+      size: data.size
+    };
+  }
+  async function getVideoTaskStatus(taskId) {
+    const response = await request(`/v1/videos/generations/${taskId}`, {
+      method: "GET"
+    });
+    const data = await response.json();
+    return {
+      status: data.status,
+      progress: data.progress,
+      video_url: data.video_url
+    };
+  }
+  async function createChatCompletion(messages, options2 = {
+    temperature: 0.7,
+    top_p: 0.9,
+    max_tokens: 4096,
+    enable_thinking: false
+  }) {
+    const apiKey = getApiKey();
+    if (!apiKey) {
+      throw new Error("请先配置 Agnes AI API Key");
+    }
+    const baseUrl = getApiBaseUrl();
+    return fetch(`${baseUrl}/v1/chat/completions`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${apiKey}`
+      },
+      body: JSON.stringify({
+        model: "agnes-ai-1.0",
+        messages,
+        stream: true,
+        ...options2
+      })
+    });
+  }
   /**
    * @license lucide-react v1.25.0 - ISC
    *
@@ -12571,65 +13242,65 @@
    * This source code is licensed under the ISC license.
    * See the LICENSE file in the root directory of this source tree.
    */
-  const __iconNode$r = [
+  const __iconNode$y = [
     ["path", { d: "m12 19-7-7 7-7", key: "1l729n" }],
     ["path", { d: "M19 12H5", key: "x3x0zl" }]
   ];
-  const ArrowLeft = createLucideIcon("arrow-left", __iconNode$r);
+  const ArrowLeft = createLucideIcon("arrow-left", __iconNode$y);
   /**
    * @license lucide-react v1.25.0 - ISC
    *
    * This source code is licensed under the ISC license.
    * See the LICENSE file in the root directory of this source tree.
    */
-  const __iconNode$q = [["path", { d: "M20 6 9 17l-5-5", key: "1gmf2c" }]];
-  const Check = createLucideIcon("check", __iconNode$q);
+  const __iconNode$x = [["path", { d: "M20 6 9 17l-5-5", key: "1gmf2c" }]];
+  const Check = createLucideIcon("check", __iconNode$x);
   /**
    * @license lucide-react v1.25.0 - ISC
    *
    * This source code is licensed under the ISC license.
    * See the LICENSE file in the root directory of this source tree.
    */
-  const __iconNode$p = [["path", { d: "m6 9 6 6 6-6", key: "qrunsl" }]];
-  const ChevronDown = createLucideIcon("chevron-down", __iconNode$p);
+  const __iconNode$w = [["path", { d: "m6 9 6 6 6-6", key: "qrunsl" }]];
+  const ChevronDown = createLucideIcon("chevron-down", __iconNode$w);
   /**
    * @license lucide-react v1.25.0 - ISC
    *
    * This source code is licensed under the ISC license.
    * See the LICENSE file in the root directory of this source tree.
    */
-  const __iconNode$o = [["path", { d: "m18 15-6-6-6 6", key: "153udz" }]];
-  const ChevronUp = createLucideIcon("chevron-up", __iconNode$o);
+  const __iconNode$v = [["path", { d: "m18 15-6-6-6 6", key: "153udz" }]];
+  const ChevronUp = createLucideIcon("chevron-up", __iconNode$v);
   /**
    * @license lucide-react v1.25.0 - ISC
    *
    * This source code is licensed under the ISC license.
    * See the LICENSE file in the root directory of this source tree.
    */
-  const __iconNode$n = [
+  const __iconNode$u = [
     ["rect", { width: "14", height: "14", x: "8", y: "8", rx: "2", ry: "2", key: "17jyea" }],
     ["path", { d: "M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2", key: "zix9uf" }]
   ];
-  const Copy = createLucideIcon("copy", __iconNode$n);
+  const Copy = createLucideIcon("copy", __iconNode$u);
   /**
    * @license lucide-react v1.25.0 - ISC
    *
    * This source code is licensed under the ISC license.
    * See the LICENSE file in the root directory of this source tree.
    */
-  const __iconNode$m = [
+  const __iconNode$t = [
     ["path", { d: "M12 15V3", key: "m9g1x1" }],
     ["path", { d: "M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4", key: "ih7n3h" }],
     ["path", { d: "m7 10 5 5 5-5", key: "brsn70" }]
   ];
-  const Download = createLucideIcon("download", __iconNode$m);
+  const Download = createLucideIcon("download", __iconNode$t);
   /**
    * @license lucide-react v1.25.0 - ISC
    *
    * This source code is licensed under the ISC license.
    * See the LICENSE file in the root directory of this source tree.
    */
-  const __iconNode$l = [
+  const __iconNode$s = [
     [
       "path",
       {
@@ -12647,7 +13318,109 @@
     ],
     ["path", { d: "m2 2 20 20", key: "1ooewy" }]
   ];
-  const EyeOff = createLucideIcon("eye-off", __iconNode$l);
+  const EyeOff = createLucideIcon("eye-off", __iconNode$s);
+  /**
+   * @license lucide-react v1.25.0 - ISC
+   *
+   * This source code is licensed under the ISC license.
+   * See the LICENSE file in the root directory of this source tree.
+   */
+  const __iconNode$r = [
+    [
+      "path",
+      {
+        d: "M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0",
+        key: "1nclc0"
+      }
+    ],
+    ["circle", { cx: "12", cy: "12", r: "3", key: "1v7zrd" }]
+  ];
+  const Eye = createLucideIcon("eye", __iconNode$r);
+  /**
+   * @license lucide-react v1.25.0 - ISC
+   *
+   * This source code is licensed under the ISC license.
+   * See the LICENSE file in the root directory of this source tree.
+   */
+  const __iconNode$q = [
+    [
+      "path",
+      {
+        d: "M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z",
+        key: "1oefj6"
+      }
+    ],
+    ["path", { d: "M14 2v5a1 1 0 0 0 1 1h5", key: "wfsgrz" }],
+    ["path", { d: "M10 9H8", key: "b1mrlr" }],
+    ["path", { d: "M16 13H8", key: "t4e002" }],
+    ["path", { d: "M16 17H8", key: "z1uh3a" }]
+  ];
+  const FileText = createLucideIcon("file-text", __iconNode$q);
+  /**
+   * @license lucide-react v1.25.0 - ISC
+   *
+   * This source code is licensed under the ISC license.
+   * See the LICENSE file in the root directory of this source tree.
+   */
+  const __iconNode$p = [
+    ["rect", { width: "18", height: "18", x: "3", y: "3", rx: "2", key: "afitv7" }],
+    ["path", { d: "M7 3v18", key: "bbkbws" }],
+    ["path", { d: "M3 7.5h4", key: "zfgn84" }],
+    ["path", { d: "M3 12h18", key: "1i2n21" }],
+    ["path", { d: "M3 16.5h4", key: "1230mu" }],
+    ["path", { d: "M17 3v18", key: "in4fa5" }],
+    ["path", { d: "M17 7.5h4", key: "myr1c1" }],
+    ["path", { d: "M17 16.5h4", key: "go4c1d" }]
+  ];
+  const Film = createLucideIcon("film", __iconNode$p);
+  /**
+   * @license lucide-react v1.25.0 - ISC
+   *
+   * This source code is licensed under the ISC license.
+   * See the LICENSE file in the root directory of this source tree.
+   */
+  const __iconNode$o = [
+    ["circle", { cx: "12", cy: "12", r: "10", key: "1mglay" }],
+    ["path", { d: "M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20", key: "13o1zl" }],
+    ["path", { d: "M2 12h20", key: "9i4pu4" }]
+  ];
+  const Globe = createLucideIcon("globe", __iconNode$o);
+  /**
+   * @license lucide-react v1.25.0 - ISC
+   *
+   * This source code is licensed under the ISC license.
+   * See the LICENSE file in the root directory of this source tree.
+   */
+  const __iconNode$n = [
+    ["path", { d: "M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8", key: "1357e3" }],
+    ["path", { d: "M3 3v5h5", key: "1xhq8a" }],
+    ["path", { d: "M12 7v5l4 2", key: "1fdv2h" }]
+  ];
+  const History = createLucideIcon("history", __iconNode$n);
+  /**
+   * @license lucide-react v1.25.0 - ISC
+   *
+   * This source code is licensed under the ISC license.
+   * See the LICENSE file in the root directory of this source tree.
+   */
+  const __iconNode$m = [
+    ["rect", { width: "18", height: "18", x: "3", y: "3", rx: "2", ry: "2", key: "1m3agn" }],
+    ["circle", { cx: "9", cy: "9", r: "2", key: "af1f0g" }],
+    ["path", { d: "m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21", key: "1xmnt7" }]
+  ];
+  const Image = createLucideIcon("image", __iconNode$m);
+  /**
+   * @license lucide-react v1.25.0 - ISC
+   *
+   * This source code is licensed under the ISC license.
+   * See the LICENSE file in the root directory of this source tree.
+   */
+  const __iconNode$l = [
+    ["path", { d: "m15.5 7.5 2.3 2.3a1 1 0 0 0 1.4 0l2.1-2.1a1 1 0 0 0 0-1.4L19 4", key: "g0fldk" }],
+    ["path", { d: "m21 2-9.6 9.6", key: "1j0ho8" }],
+    ["circle", { cx: "7.5", cy: "15.5", r: "5.5", key: "yqb3hr" }]
+  ];
+  const Key = createLucideIcon("key", __iconNode$l);
   /**
    * @license lucide-react v1.25.0 - ISC
    *
@@ -12658,13 +13431,26 @@
     [
       "path",
       {
-        d: "M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0",
-        key: "1nclc0"
+        d: "M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83z",
+        key: "zw3jo"
       }
     ],
-    ["circle", { cx: "12", cy: "12", r: "3", key: "1v7zrd" }]
+    [
+      "path",
+      {
+        d: "M2 12a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 12",
+        key: "1wduqc"
+      }
+    ],
+    [
+      "path",
+      {
+        d: "M2 17a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 17",
+        key: "kqbvx6"
+      }
+    ]
   ];
-  const Eye = createLucideIcon("eye", __iconNode$k);
+  const Layers = createLucideIcon("layers", __iconNode$k);
   /**
    * @license lucide-react v1.25.0 - ISC
    *
@@ -12672,11 +13458,11 @@
    * See the LICENSE file in the root directory of this source tree.
    */
   const __iconNode$j = [
-    ["circle", { cx: "12", cy: "12", r: "10", key: "1mglay" }],
-    ["path", { d: "M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20", key: "13o1zl" }],
-    ["path", { d: "M2 12h20", key: "9i4pu4" }]
+    ["path", { d: "M9 17H7A5 5 0 0 1 7 7h2", key: "8i5ue5" }],
+    ["path", { d: "M15 7h2a5 5 0 1 1 0 10h-2", key: "1b9ql8" }],
+    ["line", { x1: "8", x2: "16", y1: "12", y2: "12", key: "1jonct" }]
   ];
-  const Globe = createLucideIcon("globe", __iconNode$j);
+  const Link2 = createLucideIcon("link-2", __iconNode$j);
   /**
    * @license lucide-react v1.25.0 - ISC
    *
@@ -12684,54 +13470,6 @@
    * See the LICENSE file in the root directory of this source tree.
    */
   const __iconNode$i = [
-    ["path", { d: "M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8", key: "1357e3" }],
-    ["path", { d: "M3 3v5h5", key: "1xhq8a" }],
-    ["path", { d: "M12 7v5l4 2", key: "1fdv2h" }]
-  ];
-  const History = createLucideIcon("history", __iconNode$i);
-  /**
-   * @license lucide-react v1.25.0 - ISC
-   *
-   * This source code is licensed under the ISC license.
-   * See the LICENSE file in the root directory of this source tree.
-   */
-  const __iconNode$h = [
-    ["rect", { width: "18", height: "18", x: "3", y: "3", rx: "2", ry: "2", key: "1m3agn" }],
-    ["circle", { cx: "9", cy: "9", r: "2", key: "af1f0g" }],
-    ["path", { d: "m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21", key: "1xmnt7" }]
-  ];
-  const Image = createLucideIcon("image", __iconNode$h);
-  /**
-   * @license lucide-react v1.25.0 - ISC
-   *
-   * This source code is licensed under the ISC license.
-   * See the LICENSE file in the root directory of this source tree.
-   */
-  const __iconNode$g = [
-    ["path", { d: "m15.5 7.5 2.3 2.3a1 1 0 0 0 1.4 0l2.1-2.1a1 1 0 0 0 0-1.4L19 4", key: "g0fldk" }],
-    ["path", { d: "m21 2-9.6 9.6", key: "1j0ho8" }],
-    ["circle", { cx: "7.5", cy: "15.5", r: "5.5", key: "yqb3hr" }]
-  ];
-  const Key = createLucideIcon("key", __iconNode$g);
-  /**
-   * @license lucide-react v1.25.0 - ISC
-   *
-   * This source code is licensed under the ISC license.
-   * See the LICENSE file in the root directory of this source tree.
-   */
-  const __iconNode$f = [
-    ["path", { d: "M4 5h16", key: "1tepv9" }],
-    ["path", { d: "M4 12h16", key: "1lakjw" }],
-    ["path", { d: "M4 19h16", key: "1djgab" }]
-  ];
-  const Menu = createLucideIcon("menu", __iconNode$f);
-  /**
-   * @license lucide-react v1.25.0 - ISC
-   *
-   * This source code is licensed under the ISC license.
-   * See the LICENSE file in the root directory of this source tree.
-   */
-  const __iconNode$e = [
     [
       "path",
       {
@@ -12744,7 +13482,63 @@
     ["circle", { cx: "6.5", cy: "12.5", r: ".5", fill: "currentColor", key: "qy21gx" }],
     ["circle", { cx: "8.5", cy: "7.5", r: ".5", fill: "currentColor", key: "fotxhn" }]
   ];
-  const Palette = createLucideIcon("palette", __iconNode$e);
+  const Palette = createLucideIcon("palette", __iconNode$i);
+  /**
+   * @license lucide-react v1.25.0 - ISC
+   *
+   * This source code is licensed under the ISC license.
+   * See the LICENSE file in the root directory of this source tree.
+   */
+  const __iconNode$h = [
+    ["rect", { width: "18", height: "18", x: "3", y: "3", rx: "2", key: "afitv7" }],
+    ["path", { d: "M9 3v18", key: "fh3hqa" }],
+    ["path", { d: "m16 15-3-3 3-3", key: "14y99z" }]
+  ];
+  const PanelLeftClose = createLucideIcon("panel-left-close", __iconNode$h);
+  /**
+   * @license lucide-react v1.25.0 - ISC
+   *
+   * This source code is licensed under the ISC license.
+   * See the LICENSE file in the root directory of this source tree.
+   */
+  const __iconNode$g = [
+    ["rect", { width: "18", height: "18", x: "3", y: "3", rx: "2", key: "afitv7" }],
+    ["path", { d: "M9 3v18", key: "fh3hqa" }]
+  ];
+  const PanelLeft = createLucideIcon("panel-left", __iconNode$g);
+  /**
+   * @license lucide-react v1.25.0 - ISC
+   *
+   * This source code is licensed under the ISC license.
+   * See the LICENSE file in the root directory of this source tree.
+   */
+  const __iconNode$f = [
+    ["path", { d: "M13 21h8", key: "1jsn5i" }],
+    [
+      "path",
+      {
+        d: "M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z",
+        key: "1a8usu"
+      }
+    ]
+  ];
+  const PenLine = createLucideIcon("pen-line", __iconNode$f);
+  /**
+   * @license lucide-react v1.25.0 - ISC
+   *
+   * This source code is licensed under the ISC license.
+   * See the LICENSE file in the root directory of this source tree.
+   */
+  const __iconNode$e = [
+    [
+      "path",
+      {
+        d: "M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z",
+        key: "1a8usu"
+      }
+    ]
+  ];
+  const Pen = createLucideIcon("pen", __iconNode$e);
   /**
    * @license lucide-react v1.25.0 - ISC
    *
@@ -12755,12 +13549,12 @@
     [
       "path",
       {
-        d: "M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z",
-        key: "1a8usu"
+        d: "M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z",
+        key: "10ikf1"
       }
     ]
   ];
-  const Pen = createLucideIcon("pen", __iconNode$d);
+  const Play = createLucideIcon("play", __iconNode$d);
   /**
    * @license lucide-react v1.25.0 - ISC
    *
@@ -12768,15 +13562,10 @@
    * See the LICENSE file in the root directory of this source tree.
    */
   const __iconNode$c = [
-    [
-      "path",
-      {
-        d: "M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z",
-        key: "10ikf1"
-      }
-    ]
+    ["path", { d: "M5 12h14", key: "1ays0h" }],
+    ["path", { d: "M12 5v14", key: "s699le" }]
   ];
-  const Play = createLucideIcon("play", __iconNode$c);
+  const Plus = createLucideIcon("plus", __iconNode$c);
   /**
    * @license lucide-react v1.25.0 - ISC
    *
@@ -12784,10 +13573,12 @@
    * See the LICENSE file in the root directory of this source tree.
    */
   const __iconNode$b = [
-    ["path", { d: "M5 12h14", key: "1ays0h" }],
-    ["path", { d: "M12 5v14", key: "s699le" }]
+    ["path", { d: "M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8", key: "v9h5vc" }],
+    ["path", { d: "M21 3v5h-5", key: "1q7to0" }],
+    ["path", { d: "M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16", key: "3uifl3" }],
+    ["path", { d: "M8 16H3v5", key: "1cv678" }]
   ];
-  const Plus = createLucideIcon("plus", __iconNode$b);
+  const RefreshCw = createLucideIcon("refresh-cw", __iconNode$b);
   /**
    * @license lucide-react v1.25.0 - ISC
    *
@@ -12795,19 +13586,6 @@
    * See the LICENSE file in the root directory of this source tree.
    */
   const __iconNode$a = [
-    ["path", { d: "M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8", key: "v9h5vc" }],
-    ["path", { d: "M21 3v5h-5", key: "1q7to0" }],
-    ["path", { d: "M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16", key: "3uifl3" }],
-    ["path", { d: "M8 16H3v5", key: "1cv678" }]
-  ];
-  const RefreshCw = createLucideIcon("refresh-cw", __iconNode$a);
-  /**
-   * @license lucide-react v1.25.0 - ISC
-   *
-   * This source code is licensed under the ISC license.
-   * See the LICENSE file in the root directory of this source tree.
-   */
-  const __iconNode$9 = [
     [
       "path",
       {
@@ -12817,7 +13595,20 @@
     ],
     ["path", { d: "m21.854 2.147-10.94 10.939", key: "12cjpa" }]
   ];
-  const Send = createLucideIcon("send", __iconNode$9);
+  const Send = createLucideIcon("send", __iconNode$a);
+  /**
+   * @license lucide-react v1.25.0 - ISC
+   *
+   * This source code is licensed under the ISC license.
+   * See the LICENSE file in the root directory of this source tree.
+   */
+  const __iconNode$9 = [
+    ["path", { d: "M14 17H5", key: "gfn3mx" }],
+    ["path", { d: "M19 7h-9", key: "6i9tg" }],
+    ["circle", { cx: "17", cy: "17", r: "3", key: "18b49y" }],
+    ["circle", { cx: "7", cy: "7", r: "3", key: "dfmy0x" }]
+  ];
+  const Settings2 = createLucideIcon("settings-2", __iconNode$9);
   /**
    * @license lucide-react v1.25.0 - ISC
    *
@@ -12825,12 +13616,16 @@
    * See the LICENSE file in the root directory of this source tree.
    */
   const __iconNode$8 = [
-    ["path", { d: "M14 17H5", key: "gfn3mx" }],
-    ["path", { d: "M19 7h-9", key: "6i9tg" }],
-    ["circle", { cx: "17", cy: "17", r: "3", key: "18b49y" }],
-    ["circle", { cx: "7", cy: "7", r: "3", key: "dfmy0x" }]
+    [
+      "path",
+      {
+        d: "M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915",
+        key: "1i5ecw"
+      }
+    ],
+    ["circle", { cx: "12", cy: "12", r: "3", key: "1v7zrd" }]
   ];
-  const Settings2 = createLucideIcon("settings-2", __iconNode$8);
+  const Settings = createLucideIcon("settings", __iconNode$8);
   /**
    * @license lucide-react v1.25.0 - ISC
    *
@@ -13100,7 +13895,7 @@
       values[key] = value;
     }
   }
-  function create$1(definition2) {
+  function create(definition2) {
     const properties = {};
     const normals = {};
     for (const [property, value] of Object.entries(definition2.properties)) {
@@ -13119,7 +13914,7 @@
     }
     return new Schema(properties, normals, definition2.space);
   }
-  const aria = create$1({
+  const aria = create({
     properties: {
       ariaActiveDescendant: null,
       ariaAtomic: booleanish,
@@ -13181,7 +13976,7 @@
   function caseInsensitiveTransform(attributes, property) {
     return caseSensitiveTransform(attributes, property.toLowerCase());
   }
-  const html$3 = create$1({
+  const html$3 = create({
     attributes: {
       acceptcharset: "accept-charset",
       classname: "class",
@@ -13553,7 +14348,7 @@
     space: "html",
     transform: caseInsensitiveTransform
   });
-  const svg$1 = create$1({
+  const svg$1 = create({
     attributes: {
       accentHeight: "accent-height",
       alignmentBaseline: "alignment-baseline",
@@ -14115,7 +14910,7 @@
     space: "svg",
     transform: caseSensitiveTransform
   });
-  const xlink = create$1({
+  const xlink = create({
     properties: {
       xLinkActuate: null,
       xLinkArcRole: null,
@@ -14130,13 +14925,13 @@
       return "xlink:" + property.slice(5).toLowerCase();
     }
   });
-  const xmlns = create$1({
+  const xmlns = create({
     attributes: { xmlnsxlink: "xmlns:xlink" },
     properties: { xmlnsXLink: null, xmlns: null },
     space: "xmlns",
     transform: caseInsensitiveTransform
   });
-  const xml = create$1({
+  const xml = create({
     properties: { xmlBase: null, xmlLang: null, xmlSpace: null },
     space: "xml",
     transform(_, property) {
@@ -25527,859 +26322,13 @@
     fromMarkdownExtensions.push(gfmFromMarkdown());
     toMarkdownExtensions.push(gfmToMarkdown(settings));
   }
-  const __vite_import_meta_env__$2 = {};
-  const createStoreImpl = (createState2) => {
-    let state;
-    const listeners = /* @__PURE__ */ new Set();
-    const setState = (partial, replace2) => {
-      const nextState = typeof partial === "function" ? partial(state) : partial;
-      if (!Object.is(nextState, state)) {
-        const previousState = state;
-        state = (replace2 != null ? replace2 : typeof nextState !== "object" || nextState === null) ? nextState : Object.assign({}, state, nextState);
-        listeners.forEach((listener) => listener(state, previousState));
-      }
-    };
-    const getState = () => state;
-    const getInitialState = () => initialState;
-    const subscribe = (listener) => {
-      listeners.add(listener);
-      return () => listeners.delete(listener);
-    };
-    const destroy = () => {
-      if ((__vite_import_meta_env__$2 ? "production" : void 0) !== "production") {
-        console.warn(
-          "[DEPRECATED] The `destroy` method will be unsupported in a future version. Instead use unsubscribe function returned by subscribe. Everything will be garbage-collected if store is garbage-collected."
-        );
-      }
-      listeners.clear();
-    };
-    const api = { setState, getState, getInitialState, subscribe, destroy };
-    const initialState = state = createState2(setState, getState, api);
-    return api;
-  };
-  const createStore = (createState2) => createState2 ? createStoreImpl(createState2) : createStoreImpl;
-  var withSelector = { exports: {} };
-  var withSelector_production = {};
-  var shim$2 = { exports: {} };
-  var useSyncExternalStoreShim_production = {};
-  /**
-   * @license React
-   * use-sync-external-store-shim.production.js
-   *
-   * Copyright (c) Meta Platforms, Inc. and affiliates.
-   *
-   * This source code is licensed under the MIT license found in the
-   * LICENSE file in the root directory of this source tree.
-   */
-  var React$1 = reactExports;
-  function is$1(x, y) {
-    return x === y && (0 !== x || 1 / x === 1 / y) || x !== x && y !== y;
-  }
-  var objectIs$1 = "function" === typeof Object.is ? Object.is : is$1, useState = React$1.useState, useEffect$1 = React$1.useEffect, useLayoutEffect = React$1.useLayoutEffect, useDebugValue$2 = React$1.useDebugValue;
-  function useSyncExternalStore$2(subscribe, getSnapshot) {
-    var value = getSnapshot(), _useState = useState({ inst: { value, getSnapshot } }), inst = _useState[0].inst, forceUpdate = _useState[1];
-    useLayoutEffect(
-      function() {
-        inst.value = value;
-        inst.getSnapshot = getSnapshot;
-        checkIfSnapshotChanged(inst) && forceUpdate({ inst });
-      },
-      [subscribe, value, getSnapshot]
-    );
-    useEffect$1(
-      function() {
-        checkIfSnapshotChanged(inst) && forceUpdate({ inst });
-        return subscribe(function() {
-          checkIfSnapshotChanged(inst) && forceUpdate({ inst });
-        });
-      },
-      [subscribe]
-    );
-    useDebugValue$2(value);
-    return value;
-  }
-  function checkIfSnapshotChanged(inst) {
-    var latestGetSnapshot = inst.getSnapshot;
-    inst = inst.value;
-    try {
-      var nextValue = latestGetSnapshot();
-      return !objectIs$1(inst, nextValue);
-    } catch (error) {
-      return true;
-    }
-  }
-  function useSyncExternalStore$1(subscribe, getSnapshot) {
-    return getSnapshot();
-  }
-  var shim$1 = "undefined" === typeof window || "undefined" === typeof window.document || "undefined" === typeof window.document.createElement ? useSyncExternalStore$1 : useSyncExternalStore$2;
-  useSyncExternalStoreShim_production.useSyncExternalStore = void 0 !== React$1.useSyncExternalStore ? React$1.useSyncExternalStore : shim$1;
-  {
-    shim$2.exports = useSyncExternalStoreShim_production;
-  }
-  var shimExports = shim$2.exports;
-  /**
-   * @license React
-   * use-sync-external-store-shim/with-selector.production.js
-   *
-   * Copyright (c) Meta Platforms, Inc. and affiliates.
-   *
-   * This source code is licensed under the MIT license found in the
-   * LICENSE file in the root directory of this source tree.
-   */
-  var React = reactExports, shim = shimExports;
-  function is(x, y) {
-    return x === y && (0 !== x || 1 / x === 1 / y) || x !== x && y !== y;
-  }
-  var objectIs = "function" === typeof Object.is ? Object.is : is, useSyncExternalStore = shim.useSyncExternalStore, useRef = React.useRef, useEffect = React.useEffect, useMemo = React.useMemo, useDebugValue$1 = React.useDebugValue;
-  withSelector_production.useSyncExternalStoreWithSelector = function(subscribe, getSnapshot, getServerSnapshot, selector, isEqual) {
-    var instRef = useRef(null);
-    if (null === instRef.current) {
-      var inst = { hasValue: false, value: null };
-      instRef.current = inst;
-    } else inst = instRef.current;
-    instRef = useMemo(
-      function() {
-        function memoizedSelector(nextSnapshot) {
-          if (!hasMemo) {
-            hasMemo = true;
-            memoizedSnapshot = nextSnapshot;
-            nextSnapshot = selector(nextSnapshot);
-            if (void 0 !== isEqual && inst.hasValue) {
-              var currentSelection = inst.value;
-              if (isEqual(currentSelection, nextSnapshot))
-                return memoizedSelection = currentSelection;
-            }
-            return memoizedSelection = nextSnapshot;
-          }
-          currentSelection = memoizedSelection;
-          if (objectIs(memoizedSnapshot, nextSnapshot)) return currentSelection;
-          var nextSelection = selector(nextSnapshot);
-          if (void 0 !== isEqual && isEqual(currentSelection, nextSelection))
-            return memoizedSnapshot = nextSnapshot, currentSelection;
-          memoizedSnapshot = nextSnapshot;
-          return memoizedSelection = nextSelection;
-        }
-        var hasMemo = false, memoizedSnapshot, memoizedSelection, maybeGetServerSnapshot = void 0 === getServerSnapshot ? null : getServerSnapshot;
-        return [
-          function() {
-            return memoizedSelector(getSnapshot());
-          },
-          null === maybeGetServerSnapshot ? void 0 : function() {
-            return memoizedSelector(maybeGetServerSnapshot());
-          }
-        ];
-      },
-      [getSnapshot, getServerSnapshot, selector, isEqual]
-    );
-    var value = useSyncExternalStore(subscribe, instRef[0], instRef[1]);
-    useEffect(
-      function() {
-        inst.hasValue = true;
-        inst.value = value;
-      },
-      [value]
-    );
-    useDebugValue$1(value);
-    return value;
-  };
-  {
-    withSelector.exports = withSelector_production;
-  }
-  var withSelectorExports = withSelector.exports;
-  const useSyncExternalStoreExports = /* @__PURE__ */ getDefaultExportFromCjs(withSelectorExports);
-  const __vite_import_meta_env__$1 = {};
-  const { useDebugValue } = React$4;
-  const { useSyncExternalStoreWithSelector } = useSyncExternalStoreExports;
-  let didWarnAboutEqualityFn = false;
-  const identity = (arg) => arg;
-  function useStore(api, selector = identity, equalityFn) {
-    if ((__vite_import_meta_env__$1 ? "production" : void 0) !== "production" && equalityFn && !didWarnAboutEqualityFn) {
-      console.warn(
-        "[DEPRECATED] Use `createWithEqualityFn` instead of `create` or use `useStoreWithEqualityFn` instead of `useStore`. They can be imported from 'zustand/traditional'. https://github.com/pmndrs/zustand/discussions/1937"
-      );
-      didWarnAboutEqualityFn = true;
-    }
-    const slice = useSyncExternalStoreWithSelector(
-      api.subscribe,
-      api.getState,
-      api.getServerState || api.getInitialState,
-      selector,
-      equalityFn
-    );
-    useDebugValue(slice);
-    return slice;
-  }
-  const createImpl = (createState2) => {
-    if ((__vite_import_meta_env__$1 ? "production" : void 0) !== "production" && typeof createState2 !== "function") {
-      console.warn(
-        "[DEPRECATED] Passing a vanilla store will be unsupported in a future version. Instead use `import { useStore } from 'zustand'`."
-      );
-    }
-    const api = typeof createState2 === "function" ? createStore(createState2) : createState2;
-    const useBoundStore = (selector, equalityFn) => useStore(api, selector, equalityFn);
-    Object.assign(useBoundStore, api);
-    return useBoundStore;
-  };
-  const create = (createState2) => createImpl;
-  const __vite_import_meta_env__ = {};
-  function createJSONStorage(getStorage, options2) {
-    let storage;
-    try {
-      storage = getStorage();
-    } catch (_e) {
-      return;
-    }
-    const persistStorage = {
-      getItem: (name2) => {
-        var _a;
-        const parse2 = (str2) => {
-          if (str2 === null) {
-            return null;
-          }
-          return JSON.parse(str2, void 0);
-        };
-        const str = (_a = storage.getItem(name2)) != null ? _a : null;
-        if (str instanceof Promise) {
-          return str.then(parse2);
-        }
-        return parse2(str);
-      },
-      setItem: (name2, newValue) => storage.setItem(
-        name2,
-        JSON.stringify(newValue, void 0)
-      ),
-      removeItem: (name2) => storage.removeItem(name2)
-    };
-    return persistStorage;
-  }
-  const toThenable = (fn) => (input) => {
-    try {
-      const result = fn(input);
-      if (result instanceof Promise) {
-        return result;
-      }
-      return {
-        then(onFulfilled) {
-          return toThenable(onFulfilled)(result);
-        },
-        catch(_onRejected) {
-          return this;
-        }
-      };
-    } catch (e) {
-      return {
-        then(_onFulfilled) {
-          return this;
-        },
-        catch(onRejected) {
-          return toThenable(onRejected)(e);
-        }
-      };
-    }
-  };
-  const oldImpl = (config, baseOptions) => (set, get, api) => {
-    let options2 = {
-      getStorage: () => localStorage,
-      serialize: JSON.stringify,
-      deserialize: JSON.parse,
-      partialize: (state) => state,
-      version: 0,
-      merge: (persistedState, currentState) => ({
-        ...currentState,
-        ...persistedState
-      }),
-      ...baseOptions
-    };
-    let hasHydrated = false;
-    const hydrationListeners = /* @__PURE__ */ new Set();
-    const finishHydrationListeners = /* @__PURE__ */ new Set();
-    let storage;
-    try {
-      storage = options2.getStorage();
-    } catch (_e) {
-    }
-    if (!storage) {
-      return config(
-        (...args) => {
-          console.warn(
-            `[zustand persist middleware] Unable to update item '${options2.name}', the given storage is currently unavailable.`
-          );
-          set(...args);
-        },
-        get,
-        api
-      );
-    }
-    const thenableSerialize = toThenable(options2.serialize);
-    const setItem = () => {
-      const state = options2.partialize({ ...get() });
-      let errorInSync;
-      const thenable = thenableSerialize({ state, version: options2.version }).then(
-        (serializedValue) => storage.setItem(options2.name, serializedValue)
-      ).catch((e) => {
-        errorInSync = e;
-      });
-      if (errorInSync) {
-        throw errorInSync;
-      }
-      return thenable;
-    };
-    const savedSetState = api.setState;
-    api.setState = (state, replace2) => {
-      savedSetState(state, replace2);
-      void setItem();
-    };
-    const configResult = config(
-      (...args) => {
-        set(...args);
-        void setItem();
-      },
-      get,
-      api
-    );
-    let stateFromStorage;
-    const hydrate = () => {
-      var _a;
-      if (!storage) return;
-      hasHydrated = false;
-      hydrationListeners.forEach((cb) => cb(get()));
-      const postRehydrationCallback = ((_a = options2.onRehydrateStorage) == null ? void 0 : _a.call(options2, get())) || void 0;
-      return toThenable(storage.getItem.bind(storage))(options2.name).then((storageValue) => {
-        if (storageValue) {
-          return options2.deserialize(storageValue);
-        }
-      }).then((deserializedStorageValue) => {
-        if (deserializedStorageValue) {
-          if (typeof deserializedStorageValue.version === "number" && deserializedStorageValue.version !== options2.version) {
-            if (options2.migrate) {
-              return options2.migrate(
-                deserializedStorageValue.state,
-                deserializedStorageValue.version
-              );
-            }
-            console.error(
-              `State loaded from storage couldn't be migrated since no migrate function was provided`
-            );
-          } else {
-            return deserializedStorageValue.state;
-          }
-        }
-      }).then((migratedState) => {
-        var _a2;
-        stateFromStorage = options2.merge(
-          migratedState,
-          (_a2 = get()) != null ? _a2 : configResult
-        );
-        set(stateFromStorage, true);
-        return setItem();
-      }).then(() => {
-        postRehydrationCallback == null ? void 0 : postRehydrationCallback(stateFromStorage, void 0);
-        hasHydrated = true;
-        finishHydrationListeners.forEach((cb) => cb(stateFromStorage));
-      }).catch((e) => {
-        postRehydrationCallback == null ? void 0 : postRehydrationCallback(void 0, e);
-      });
-    };
-    api.persist = {
-      setOptions: (newOptions) => {
-        options2 = {
-          ...options2,
-          ...newOptions
-        };
-        if (newOptions.getStorage) {
-          storage = newOptions.getStorage();
-        }
-      },
-      clearStorage: () => {
-        storage == null ? void 0 : storage.removeItem(options2.name);
-      },
-      getOptions: () => options2,
-      rehydrate: () => hydrate(),
-      hasHydrated: () => hasHydrated,
-      onHydrate: (cb) => {
-        hydrationListeners.add(cb);
-        return () => {
-          hydrationListeners.delete(cb);
-        };
-      },
-      onFinishHydration: (cb) => {
-        finishHydrationListeners.add(cb);
-        return () => {
-          finishHydrationListeners.delete(cb);
-        };
-      }
-    };
-    hydrate();
-    return stateFromStorage || configResult;
-  };
-  const newImpl = (config, baseOptions) => (set, get, api) => {
-    let options2 = {
-      storage: createJSONStorage(() => localStorage),
-      partialize: (state) => state,
-      version: 0,
-      merge: (persistedState, currentState) => ({
-        ...currentState,
-        ...persistedState
-      }),
-      ...baseOptions
-    };
-    let hasHydrated = false;
-    const hydrationListeners = /* @__PURE__ */ new Set();
-    const finishHydrationListeners = /* @__PURE__ */ new Set();
-    let storage = options2.storage;
-    if (!storage) {
-      return config(
-        (...args) => {
-          console.warn(
-            `[zustand persist middleware] Unable to update item '${options2.name}', the given storage is currently unavailable.`
-          );
-          set(...args);
-        },
-        get,
-        api
-      );
-    }
-    const setItem = () => {
-      const state = options2.partialize({ ...get() });
-      return storage.setItem(options2.name, {
-        state,
-        version: options2.version
-      });
-    };
-    const savedSetState = api.setState;
-    api.setState = (state, replace2) => {
-      savedSetState(state, replace2);
-      void setItem();
-    };
-    const configResult = config(
-      (...args) => {
-        set(...args);
-        void setItem();
-      },
-      get,
-      api
-    );
-    api.getInitialState = () => configResult;
-    let stateFromStorage;
-    const hydrate = () => {
-      var _a, _b;
-      if (!storage) return;
-      hasHydrated = false;
-      hydrationListeners.forEach((cb) => {
-        var _a2;
-        return cb((_a2 = get()) != null ? _a2 : configResult);
-      });
-      const postRehydrationCallback = ((_b = options2.onRehydrateStorage) == null ? void 0 : _b.call(options2, (_a = get()) != null ? _a : configResult)) || void 0;
-      return toThenable(storage.getItem.bind(storage))(options2.name).then((deserializedStorageValue) => {
-        if (deserializedStorageValue) {
-          if (typeof deserializedStorageValue.version === "number" && deserializedStorageValue.version !== options2.version) {
-            if (options2.migrate) {
-              return [
-                true,
-                options2.migrate(
-                  deserializedStorageValue.state,
-                  deserializedStorageValue.version
-                )
-              ];
-            }
-            console.error(
-              `State loaded from storage couldn't be migrated since no migrate function was provided`
-            );
-          } else {
-            return [false, deserializedStorageValue.state];
-          }
-        }
-        return [false, void 0];
-      }).then((migrationResult) => {
-        var _a2;
-        const [migrated, migratedState] = migrationResult;
-        stateFromStorage = options2.merge(
-          migratedState,
-          (_a2 = get()) != null ? _a2 : configResult
-        );
-        set(stateFromStorage, true);
-        if (migrated) {
-          return setItem();
-        }
-      }).then(() => {
-        postRehydrationCallback == null ? void 0 : postRehydrationCallback(stateFromStorage, void 0);
-        stateFromStorage = get();
-        hasHydrated = true;
-        finishHydrationListeners.forEach((cb) => cb(stateFromStorage));
-      }).catch((e) => {
-        postRehydrationCallback == null ? void 0 : postRehydrationCallback(void 0, e);
-      });
-    };
-    api.persist = {
-      setOptions: (newOptions) => {
-        options2 = {
-          ...options2,
-          ...newOptions
-        };
-        if (newOptions.storage) {
-          storage = newOptions.storage;
-        }
-      },
-      clearStorage: () => {
-        storage == null ? void 0 : storage.removeItem(options2.name);
-      },
-      getOptions: () => options2,
-      rehydrate: () => hydrate(),
-      hasHydrated: () => hasHydrated,
-      onHydrate: (cb) => {
-        hydrationListeners.add(cb);
-        return () => {
-          hydrationListeners.delete(cb);
-        };
-      },
-      onFinishHydration: (cb) => {
-        finishHydrationListeners.add(cb);
-        return () => {
-          finishHydrationListeners.delete(cb);
-        };
-      }
-    };
-    if (!options2.skipHydration) {
-      hydrate();
-    }
-    return stateFromStorage || configResult;
-  };
-  const persistImpl = (config, baseOptions) => {
-    if ("getStorage" in baseOptions || "serialize" in baseOptions || "deserialize" in baseOptions) {
-      if ((__vite_import_meta_env__ ? "production" : void 0) !== "production") {
-        console.warn(
-          "[DEPRECATED] `getStorage`, `serialize` and `deserialize` options are deprecated. Use `storage` option instead."
-        );
-      }
-      return oldImpl(config, baseOptions);
-    }
-    return newImpl(config, baseOptions);
-  };
-  const persist = persistImpl;
-  const defaultRolePresets = [
-    {
-      id: "system-1",
-      preset_id: "system-default",
-      name: "默认",
-      description: "通用对话助手",
-      system_prompt: "你是一个通用AI助手，帮助用户解答问题、提供建议。",
-      icon: "MessageSquare",
-      is_default: true,
-      is_system: true,
-      created_at: (/* @__PURE__ */ new Date()).toISOString(),
-      updated_at: (/* @__PURE__ */ new Date()).toISOString()
-    },
-    {
-      id: "system-2",
-      preset_id: "system-creative",
-      name: "创意伙伴",
-      description: "激发创意灵感",
-      system_prompt: "你是一个创意伙伴，善于激发灵感、提供新颖想法。",
-      icon: "Lightbulb",
-      is_default: false,
-      is_system: true,
-      created_at: (/* @__PURE__ */ new Date()).toISOString(),
-      updated_at: (/* @__PURE__ */ new Date()).toISOString()
-    },
-    {
-      id: "system-3",
-      preset_id: "system-writer",
-      name: "文案专家",
-      description: "专业文案写作",
-      system_prompt: "你是一个专业文案专家，擅长撰写各类文案内容。",
-      icon: "FileText",
-      is_default: false,
-      is_system: true,
-      created_at: (/* @__PURE__ */ new Date()).toISOString(),
-      updated_at: (/* @__PURE__ */ new Date()).toISOString()
-    },
-    {
-      id: "system-4",
-      preset_id: "system-coder",
-      name: "代码助手",
-      description: "编程问题解答",
-      system_prompt: "你是一个编程专家，帮助用户解决编程问题、提供代码建议。",
-      icon: "Code",
-      is_default: false,
-      is_system: true,
-      created_at: (/* @__PURE__ */ new Date()).toISOString(),
-      updated_at: (/* @__PURE__ */ new Date()).toISOString()
-    }
-  ];
-  const useAgnesStore = create()(
-    persist(
-      (set, get) => ({
-        conversations: [],
-        activeConversationId: null,
-        rolePresets: defaultRolePresets,
-        activeRolePresetId: null,
-        imageGeneration: {
-          isGenerating: false,
-          result: null,
-          history: []
-        },
-        videoGeneration: {
-          tasks: []
-        },
-        fontGeneration: {
-          tasks: []
-        },
-        apiKey: "",
-        theme: "light",
-        apiBaseUrl: "https://apihub.agnes-ai.com",
-        addMessage: (conversationId, message) => {
-          set((state) => ({
-            conversations: state.conversations.map(
-              (conv) => conv.id === conversationId ? { ...conv, messages: [...conv.messages, message], updated_at: (/* @__PURE__ */ new Date()).toISOString() } : conv
-            )
-          }));
-        },
-        updateMessage: (conversationId, messageId, content2, thinking) => {
-          set((state) => ({
-            conversations: state.conversations.map(
-              (conv) => conv.id === conversationId ? {
-                ...conv,
-                messages: conv.messages.map(
-                  (msg) => msg.id === messageId ? { ...msg, content: content2, thinking, updated_at: (/* @__PURE__ */ new Date()).toISOString() } : msg
-                ),
-                updated_at: (/* @__PURE__ */ new Date()).toISOString()
-              } : conv
-            )
-          }));
-        },
-        createConversation: (title, rolePresetId = null) => {
-          const newConversation = {
-            id: `conv-${Date.now()}`,
-            user_id: "local-user",
-            title,
-            role_preset_id: rolePresetId,
-            messages: [],
-            created_at: (/* @__PURE__ */ new Date()).toISOString(),
-            updated_at: (/* @__PURE__ */ new Date()).toISOString()
-          };
-          set((state) => ({
-            conversations: [newConversation, ...state.conversations],
-            activeConversationId: newConversation.id
-          }));
-          return newConversation;
-        },
-        setActiveConversation: (conversationId) => {
-          set({ activeConversationId: conversationId });
-        },
-        deleteConversation: (conversationId) => {
-          set((state) => {
-            var _a;
-            return {
-              conversations: state.conversations.filter((conv) => conv.id !== conversationId),
-              activeConversationId: state.activeConversationId === conversationId ? ((_a = state.conversations.find((conv) => conv.id !== conversationId)) == null ? void 0 : _a.id) || null : state.activeConversationId
-            };
-          });
-        },
-        updateConversationTitle: (conversationId, title) => {
-          set((state) => ({
-            conversations: state.conversations.map(
-              (conv) => conv.id === conversationId ? { ...conv, title, updated_at: (/* @__PURE__ */ new Date()).toISOString() } : conv
-            )
-          }));
-        },
-        addRolePreset: (preset) => {
-          const newPreset = {
-            ...preset,
-            id: `preset-${Date.now()}`,
-            created_at: (/* @__PURE__ */ new Date()).toISOString(),
-            updated_at: (/* @__PURE__ */ new Date()).toISOString()
-          };
-          set((state) => ({ rolePresets: [...state.rolePresets, newPreset] }));
-        },
-        updateRolePreset: (presetId, updates) => {
-          set((state) => ({
-            rolePresets: state.rolePresets.map(
-              (preset) => preset.id === presetId ? { ...preset, ...updates, updated_at: (/* @__PURE__ */ new Date()).toISOString() } : preset
-            )
-          }));
-        },
-        deleteRolePreset: (presetId) => {
-          set((state) => ({
-            rolePresets: state.rolePresets.filter((preset) => preset.id !== presetId),
-            activeRolePresetId: state.activeRolePresetId === presetId ? null : state.activeRolePresetId
-          }));
-        },
-        setActiveRolePreset: (presetId) => {
-          set({ activeRolePresetId: presetId });
-        },
-        setImageGenerating: (isGenerating) => {
-          set((state) => ({ imageGeneration: { ...state.imageGeneration, isGenerating } }));
-        },
-        setImageResult: (result) => {
-          set((state) => ({ imageGeneration: { ...state.imageGeneration, result } }));
-        },
-        addImageToHistory: (result) => {
-          set((state) => ({
-            imageGeneration: {
-              ...state.imageGeneration,
-              history: [result, ...state.imageGeneration.history]
-            }
-          }));
-        },
-        removeImageFromHistory: (id) => {
-          set((state) => ({
-            imageGeneration: {
-              ...state.imageGeneration,
-              history: state.imageGeneration.history.filter((img) => img.id !== id)
-            }
-          }));
-        },
-        clearImageHistory: () => {
-          set((state) => ({ imageGeneration: { ...state.imageGeneration, history: [] } }));
-        },
-        addVideoTask: (task) => {
-          set((state) => ({ videoGeneration: { ...state.videoGeneration, tasks: [task, ...state.videoGeneration.tasks] } }));
-        },
-        updateVideoTask: (taskId, updates) => {
-          set((state) => ({
-            videoGeneration: {
-              ...state.videoGeneration,
-              tasks: state.videoGeneration.tasks.map(
-                (task) => task.id === taskId ? { ...task, ...updates, updated_at: (/* @__PURE__ */ new Date()).toISOString() } : task
-              )
-            }
-          }));
-        },
-        removeVideoTask: (taskId) => {
-          set((state) => ({
-            videoGeneration: {
-              ...state.videoGeneration,
-              tasks: state.videoGeneration.tasks.filter((task) => task.id !== taskId)
-            }
-          }));
-        },
-        addFontTask: (task) => {
-          set((state) => ({ fontGeneration: { ...state.fontGeneration, tasks: [task, ...state.fontGeneration.tasks] } }));
-        },
-        updateFontTask: (taskId, updates) => {
-          set((state) => ({
-            fontGeneration: {
-              ...state.fontGeneration,
-              tasks: state.fontGeneration.tasks.map(
-                (task) => task.id === taskId ? { ...task, ...updates, updated_at: (/* @__PURE__ */ new Date()).toISOString() } : task
-              )
-            }
-          }));
-        },
-        removeFontTask: (taskId) => {
-          set((state) => ({
-            fontGeneration: {
-              ...state.fontGeneration,
-              tasks: state.fontGeneration.tasks.filter((task) => task.id !== taskId)
-            }
-          }));
-        },
-        setApiKey: (apiKey) => {
-          set({ apiKey });
-        },
-        setTheme: (theme) => {
-          set({ theme });
-        },
-        setApiBaseUrl: (url) => {
-          set({ apiBaseUrl: url });
-        }
-      }),
-      {
-        name: "agnes-store"
-      }
-    )
-  );
-  function getApiKey() {
-    return useAgnesStore.getState().apiKey;
-  }
-  function getApiBaseUrl() {
-    return useAgnesStore.getState().apiBaseUrl;
-  }
-  async function request(url, options2) {
-    const apiKey = getApiKey();
-    if (!apiKey) {
-      throw new Error("请先配置 Agnes AI API Key");
-    }
-    const baseUrl = getApiBaseUrl();
-    const response = await fetch(`${baseUrl}/v1${url}`, {
-      ...options2,
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${apiKey}`,
-        ...options2.headers
-      }
-    });
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({}));
-      throw new Error(error.error || `请求失败: ${response.status}`);
-    }
-    return response;
-  }
-  async function generateImage(prompt, model = "agnes-image-2.1-flash", size = "1024x1024", options2 = {}) {
-    const response = await request("/images/generations", {
-      method: "POST",
-      body: JSON.stringify({
-        prompt,
-        model,
-        size,
-        extra_body: {
-          response_format: "url",
-          ...options2
-        }
-      })
-    });
-    const data = await response.json();
-    return { url: data.data[0].url };
-  }
-  async function generateVideo(prompt, options2 = {}) {
-    const response = await request("/v1/videos/generations", {
-      method: "POST",
-      body: JSON.stringify({
-        prompt,
-        ...options2
-      })
-    });
-    const data = await response.json();
-    return { task_id: data.task_id };
-  }
-  async function getVideoTaskStatus(taskId) {
-    const response = await request(`/v1/videos/generations/${taskId}`, {
-      method: "GET"
-    });
-    const data = await response.json();
-    return {
-      status: data.status,
-      progress: data.progress,
-      video_url: data.video_url
-    };
-  }
-  async function createChatCompletion(messages, options2 = {
-    temperature: 0.7,
-    top_p: 0.9,
-    max_tokens: 4096,
-    enable_thinking: false
-  }) {
-    const apiKey = getApiKey();
-    if (!apiKey) {
-      throw new Error("请先配置 Agnes AI API Key");
-    }
-    const baseUrl = getApiBaseUrl();
-    return fetch(`${baseUrl}/v1/chat/completions`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${apiKey}`
-      },
-      body: JSON.stringify({
-        model: "agnes-ai-1.0",
-        messages,
-        stream: true,
-        ...options2
-      })
-    });
-  }
-  function Modal({ isOpen, onClose, title, children, className = "" }) {
+  function Modal({ isOpen, onClose, title, children, className = "", confirmText, cancelText, onConfirm, size = "md" }) {
     if (!isOpen) return null;
+    const sizeClasses = {
+      sm: "max-w-sm",
+      md: "max-w-lg",
+      lg: "max-w-xl"
+    };
     return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "fixed inset-0 z-50 flex items-center justify-center", children: [
       /* @__PURE__ */ jsxRuntimeExports.jsx(
         "div",
@@ -26388,7 +26337,7 @@
           onClick: onClose
         }
       ),
-      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: `relative bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-lg max-h-[80vh] overflow-hidden ${className}`, children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: `relative bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full ${sizeClasses[size]} max-h-[80vh] overflow-hidden ${className}`, children: [
         title && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700", children: [
           /* @__PURE__ */ jsxRuntimeExports.jsx("h3", { className: "text-lg font-semibold text-gray-900 dark:text-white", children: title }),
           /* @__PURE__ */ jsxRuntimeExports.jsx(
@@ -26400,109 +26349,106 @@
             }
           )
         ] }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "p-4 overflow-y-auto max-h-[calc(80vh-60px)]", children })
-      ] })
-    ] });
-  }
-  function ImagePreviewModal({ isOpen, onClose, image: image2 }) {
-    const [copied, setCopied] = React$4.useState(false);
-    if (!isOpen || !image2) return null;
-    const handleCopy = async () => {
-      try {
-        await navigator.clipboard.writeText(image2.url);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2e3);
-      } catch {
-        console.error("复制失败");
-      }
-    };
-    const handleDownload = () => {
-      const link2 = document.createElement("a");
-      link2.href = image2.url;
-      link2.download = `agnes-image-${image2.id}.png`;
-      link2.target = "_blank";
-      link2.click();
-    };
-    return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "fixed inset-0 z-50 flex items-center justify-center", children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx(
-        "div",
-        {
-          className: "absolute inset-0 bg-black/70 backdrop-blur-sm",
-          onClick: onClose
-        }
-      ),
-      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "relative bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-hidden", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700", children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx("h3", { className: "text-lg font-semibold text-gray-900 dark:text-white", children: "图片预览" }),
-          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-2", children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx(
-              "button",
-              {
-                onClick: handleCopy,
-                className: "p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors",
-                title: "复制链接",
-                children: copied ? /* @__PURE__ */ jsxRuntimeExports.jsx(Check, { size: 20, className: "text-green-600" }) : /* @__PURE__ */ jsxRuntimeExports.jsx(Copy, { size: 20, className: "text-gray-500" })
-              }
-            ),
-            /* @__PURE__ */ jsxRuntimeExports.jsx(
-              "button",
-              {
-                onClick: handleDownload,
-                className: "p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors",
-                title: "下载图片",
-                children: /* @__PURE__ */ jsxRuntimeExports.jsx(Download, { size: 20, className: "text-gray-500" })
-              }
-            ),
-            /* @__PURE__ */ jsxRuntimeExports.jsx(
-              "button",
-              {
-                onClick: onClose,
-                className: "p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors",
-                children: /* @__PURE__ */ jsxRuntimeExports.jsx(X, { size: 20, className: "text-gray-500" })
-              }
-            )
-          ] })
-        ] }),
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "p-4 flex flex-col items-center", children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx(
-            "img",
+        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "p-4 overflow-y-auto max-h-[calc(80vh-60px)]", children }),
+        (confirmText || cancelText) && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center justify-end gap-2 px-4 py-3 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800", children: [
+          cancelText && /* @__PURE__ */ jsxRuntimeExports.jsx(
+            "button",
             {
-              src: image2.url,
-              alt: "Generated",
-              className: "max-w-full max-h-[70vh] object-contain rounded-lg"
+              onClick: onClose,
+              className: "px-3 py-1.5 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200",
+              children: cancelText
             }
           ),
-          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mt-4 w-full", children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsxs("p", { className: "text-sm text-gray-500 dark:text-gray-400", children: [
-              "提示词: ",
-              image2.prompt
-            ] }),
-            /* @__PURE__ */ jsxRuntimeExports.jsxs("p", { className: "text-xs text-gray-400 dark:text-gray-500 mt-1", children: [
-              "尺寸: ",
-              image2.size,
-              " | 模型: ",
-              image2.model
-            ] })
-          ] })
+          confirmText && onConfirm && /* @__PURE__ */ jsxRuntimeExports.jsx(
+            "button",
+            {
+              onClick: onConfirm,
+              className: "px-3 py-1.5 text-sm font-medium text-white bg-primary rounded-lg hover:bg-primary/90",
+              children: confirmText
+            }
+          )
         ] })
       ] })
     ] });
   }
+  function generateId$1() {
+    return Date.now().toString(36) + Math.random().toString(36).substring(2);
+  }
+  function getTitleFromContent(content2) {
+    const firstLine = content2.split("\n")[0];
+    return firstLine.substring(0, 12);
+  }
+  const MODEL_OPTIONS = [
+    { value: "agnes-image-2.0-flash", label: "Agnes Image 2.0 Flash" },
+    { value: "agnes-image-2.1-flash", label: "Agnes Image 2.1 Flash" }
+  ];
+  const SIZE_OPTIONS = [
+    { value: "512x512", label: "512 × 512" },
+    { value: "1024x1024", label: "1024 × 1024" },
+    { value: "1024x768", label: "1024 × 768" },
+    { value: "768x1024", label: "768 × 1024" },
+    { value: "1024x1536", label: "1024 × 1536" },
+    { value: "1536x1024", label: "1536 × 1024" },
+    { value: "1080x1920", label: "1080 × 1920" },
+    { value: "1920x1080", label: "1920 × 1080" }
+  ];
+  const RESOLUTION_OPTIONS = [
+    { value: "1152x768", label: "1152 × 768" },
+    { value: "768x1152", label: "768 × 1152" },
+    { value: "512x512", label: "512 × 512" }
+  ];
+  const FRAME_RATE_OPTIONS = [
+    { value: 24, label: "24 FPS" },
+    { value: 30, label: "30 FPS" },
+    { value: 60, label: "60 FPS" }
+  ];
+  const FRAME_COUNT_OPTIONS = [
+    { value: 81, label: "81 帧" },
+    { value: 121, label: "121 帧" },
+    { value: 161, label: "161 帧" },
+    { value: 241, label: "241 帧" },
+    { value: 441, label: "441 帧" }
+  ];
+  const MODE_OPTIONS = [
+    { value: "text2vid", label: "文生视频", icon: Sparkles },
+    { value: "image2vid", label: "图生视频", icon: Image },
+    { value: "multi-image", label: "多图视频", icon: Layers },
+    { value: "keyframes", label: "关键帧动画", icon: Film }
+  ];
+  const NEGATIVE_TAGS = [
+    "模糊",
+    "低质量",
+    "像素化",
+    "水印",
+    "文字",
+    "变形",
+    "不自然",
+    "恐怖",
+    "血腥",
+    "暴力",
+    "色情",
+    "卡通",
+    "3D渲染",
+    "动漫",
+    "手绘"
+  ];
+  const CHAT_PRESETS = [
+    { id: "creative", name: "创意", temperature: 0.9, top_p: 0.9, max_tokens: 4096, thinking: false },
+    { id: "balanced", name: "平衡", temperature: 0.7, top_p: 0.8, max_tokens: 4096, thinking: false },
+    { id: "precise", name: "精准", temperature: 0.3, top_p: 0.5, max_tokens: 2048, thinking: false },
+    { id: "coding", name: "编程", temperature: 0.2, top_p: 0.4, max_tokens: 8192, thinking: true },
+    { id: "reasoning", name: "推理", temperature: 0.1, top_p: 0.3, max_tokens: 4096, thinking: true }
+  ];
+  const MAX_TOKENS_OPTIONS = [
+    { value: 512, label: "512" },
+    { value: 1024, label: "1K" },
+    { value: 2048, label: "2K" },
+    { value: 4096, label: "4K" },
+    { value: 8192, label: "8K" }
+  ];
+  const MAX_REFERENCE_IMAGES = 4;
+  const MAX_VIDEO_REFERENCE_IMAGES = 4;
   function AIChatPage({ onNavigate, userId = "local-user" }) {
-    const [inputValue, setInputValue] = reactExports.useState("");
-    const [isLoading, setIsLoading] = reactExports.useState(false);
-    const [showRolePresets, setShowRolePresets] = reactExports.useState(false);
-    const [showImageModal, setShowImageModal] = reactExports.useState(false);
-    const [showVideoModal, setShowVideoModal] = reactExports.useState(false);
-    const [imagePrompt, setImagePrompt] = reactExports.useState("");
-    const [videoPrompt, setVideoPrompt] = reactExports.useState("");
-    const [imageSize, setImageSize] = reactExports.useState("1024x1024");
-    const [videoSize, setVideoSize] = reactExports.useState("1024x1024");
-    const [isGeneratingImage, setIsGeneratingImage] = reactExports.useState(false);
-    const [isGeneratingVideo, setIsGeneratingVideo] = reactExports.useState(false);
-    const [previewImage, setPreviewImage] = reactExports.useState(null);
-    const messagesEndRef = reactExports.useRef(null);
-    const inputRef = reactExports.useRef(null);
     const {
       conversations,
       activeConversationId,
@@ -26510,6 +26456,7 @@
       activeRolePresetId,
       addMessage,
       updateMessage,
+      deleteMessage,
       createConversation,
       setActiveConversation,
       deleteConversation,
@@ -26519,545 +26466,1203 @@
       addVideoTask,
       apiKey
     } = useAgnesStore();
-    const [copiedMessageId, setCopiedMessageId] = reactExports.useState(null);
+    const [isLoading, setIsLoading] = reactExports.useState(false);
+    const [chatOptions, setChatOptions] = reactExports.useState({
+      temperature: 0.7,
+      top_p: 1,
+      max_tokens: 4096,
+      enable_thinking: false
+    });
+    const [activePreset, setActivePreset] = reactExports.useState("balanced");
+    const [activeTool, setActiveTool] = reactExports.useState("chat");
+    const [showToolPanel, setShowToolPanel] = reactExports.useState(false);
+    const [negativePromptExpanded, setNegativePromptExpanded] = reactExports.useState(false);
+    const [copiedStates, setCopiedStates] = reactExports.useState({});
+    const [editingMessage, setEditingMessage] = reactExports.useState(null);
+    const [editingContent, setEditingContent] = reactExports.useState("");
+    const [thinkingExpanded, setThinkingExpanded] = reactExports.useState(false);
+    const [sidebarCollapsed, setSidebarCollapsed] = reactExports.useState(true);
+    const [showRolePresets, setShowRolePresets] = reactExports.useState(false);
+    const [showRenameModal, setShowRenameModal] = reactExports.useState(false);
+    const [renamingConversationId, setRenamingConversationId] = reactExports.useState(null);
+    const [renameTitle, setRenameTitle] = reactExports.useState("");
+    const [confirmDelete, setConfirmDelete] = reactExports.useState({
+      isOpen: false,
+      conversationId: null
+    });
+    const [toolOptions, setToolOptions] = reactExports.useState({
+      imageModel: "agnes-image-2.1-flash",
+      imageSize: "1024x1024",
+      imageSeed: "",
+      negativePrompt: "",
+      videoModel: "agnes-video-v2.0",
+      videoResolution: "1152x768",
+      videoFrameRate: 24,
+      videoFrameCount: 121,
+      videoSeed: "",
+      videoMode: "text2vid"
+    });
+    const [referenceImages, setReferenceImages] = reactExports.useState([]);
+    const [videoReferenceImages, setVideoReferenceImages] = reactExports.useState([]);
+    const [imageUrlInput, setImageUrlInput] = reactExports.useState("");
+    const [videoImageUrlInput, setVideoImageUrlInput] = reactExports.useState("");
+    const messagesEndRef = reactExports.useRef(null);
     const activeConversation = conversations.find((c) => c.id === activeConversationId);
+    const scrollToBottom = () => {
+      var _a;
+      (_a = messagesEndRef.current) == null ? void 0 : _a.scrollIntoView({ behavior: "smooth" });
+    };
+    reactExports.useEffect(() => {
+      scrollToBottom();
+    }, [activeConversation == null ? void 0 : activeConversation.messages]);
     reactExports.useEffect(() => {
       if (!activeConversationId && conversations.length > 0) {
         setActiveConversation(conversations[0].id);
       }
     }, [conversations, activeConversationId, setActiveConversation]);
-    reactExports.useEffect(() => {
-      var _a;
-      (_a = messagesEndRef.current) == null ? void 0 : _a.scrollIntoView({ behavior: "smooth" });
-    }, [activeConversation == null ? void 0 : activeConversation.messages]);
-    const scrollToBottom = () => {
-      var _a;
-      (_a = messagesEndRef.current) == null ? void 0 : _a.scrollIntoView({ behavior: "smooth" });
+    const handleNewConversation = () => {
+      createConversation("新对话");
+      setEditingContent("");
+      setEditingMessage(null);
+    };
+    const handleConfirmRename = () => {
+      if (!renamingConversationId || !renameTitle.trim()) return;
+      updateConversationTitle(renamingConversationId, renameTitle.trim());
+      setShowRenameModal(false);
+      setRenamingConversationId(null);
+      setRenameTitle("");
+    };
+    const handleDeleteConversation = (conversationId) => {
+      setConfirmDelete({
+        isOpen: true,
+        conversationId
+      });
+    };
+    const handleConfirmDeleteConversation = () => {
+      if (!confirmDelete.conversationId) return;
+      deleteConversation(confirmDelete.conversationId);
+      setConfirmDelete({
+        isOpen: false,
+        conversationId: null
+      });
     };
     const handleSendMessage = async (content2) => {
-      var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m;
       if (!content2.trim() || !apiKey || isLoading) return;
       setIsLoading(true);
-      if (!activeConversation) {
-        createConversation(content2.substring(0, 20) || "新对话");
+      let conversationId = activeConversationId;
+      if (!conversationId) {
+        const newConversation = createConversation(getTitleFromContent(content2));
+        conversationId = newConversation.id;
       }
       const userMessage = {
-        id: `msg-${Date.now()}`,
+        id: generateId$1(),
         role: "user",
         content: content2.trim(),
         created_at: (/* @__PURE__ */ new Date()).toISOString()
       };
-      addMessage(activeConversationId, userMessage);
+      addMessage(conversationId, userMessage);
+      setEditingContent("");
       scrollToBottom();
       try {
-        const conv = conversations.find((c) => c.id === activeConversationId);
-        const rolePresetId = (conv == null ? void 0 : conv.role_preset_id) || activeRolePresetId;
-        const activePresetData = rolePresets.find((p) => p.id === rolePresetId);
-        let messagesWithUser = conv ? [...conv.messages.map((m) => ({ role: m.role, content: m.content })), { role: userMessage.role, content: userMessage.content }] : [{ role: userMessage.role, content: userMessage.content }];
-        if (activePresetData && activePresetData.system_prompt && !(conv == null ? void 0 : conv.messages.some((m) => m.role === "system"))) {
-          messagesWithUser = [{ role: "system", content: activePresetData.system_prompt }, ...messagesWithUser];
-        }
-        const response = await createChatCompletion(messagesWithUser);
-        if (!response.ok) {
-          const errorBody = await response.text();
-          throw new Error(`API request failed: ${response.status} - ${errorBody}`);
-        }
-        const reader = (_a = response.body) == null ? void 0 : _a.getReader();
-        const decoder = new TextDecoder("utf-8");
-        let contentResult = "";
-        let thinkingResult = "";
-        let buffer = "";
-        const assistantMessage = {
-          id: `msg-${Date.now()}`,
-          role: "assistant",
-          content: "",
-          thinking: "",
-          created_at: (/* @__PURE__ */ new Date()).toISOString()
-        };
-        addMessage(activeConversationId, assistantMessage);
-        while (reader) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          const chunk = decoder.decode(value, { stream: true });
-          buffer += chunk;
-          const lines = buffer.split("\n");
-          for (let i = 0; i < lines.length - 1; i++) {
-            const line = lines[i];
-            if (line.startsWith("data: ")) {
-              const data = line.substring(6);
-              if (data === "[DONE]") continue;
-              try {
-                const parsed = JSON.parse(data);
-                const text2 = ((_d = (_c = (_b = parsed.choices) == null ? void 0 : _b[0]) == null ? void 0 : _c.delta) == null ? void 0 : _d.content) || ((_g = (_f = (_e = parsed.choices) == null ? void 0 : _e[0]) == null ? void 0 : _f.message) == null ? void 0 : _g.content) || "";
-                const thinking = ((_j = (_i = (_h = parsed.choices) == null ? void 0 : _h[0]) == null ? void 0 : _i.delta) == null ? void 0 : _j.reasoning_content) || ((_m = (_l = (_k = parsed.choices) == null ? void 0 : _k[0]) == null ? void 0 : _l.message) == null ? void 0 : _m.reasoning_content) || "";
-                if (text2) {
-                  contentResult += text2;
-                  updateMessage(activeConversationId, assistantMessage.id, contentResult, thinkingResult);
-                  scrollToBottom();
-                }
-                if (thinking) {
-                  thinkingResult += thinking;
-                  updateMessage(activeConversationId, assistantMessage.id, contentResult, thinkingResult);
-                  scrollToBottom();
-                }
-              } catch {
-              }
-            }
-          }
-          buffer = lines[lines.length - 1] || "";
-        }
-        if (!thinkingResult.trim()) {
-          updateMessage(activeConversationId, assistantMessage.id, contentResult, void 0);
-        }
-        if (activeConversation) {
-          updateConversationTitle(activeConversationId, content2.substring(0, 30) || "新对话");
+        switch (activeTool) {
+          case "image":
+            await handleImageGeneration(content2.trim(), conversationId);
+            break;
+          case "video":
+            await handleVideoGeneration(content2.trim(), conversationId);
+            break;
+          default:
+            await handleChatCompletion(conversationId, content2.trim(), userMessage);
+            break;
         }
       } catch (error) {
-        console.error("发送消息失败:", error);
+        console.error("Error:", error);
         const errorMessage = {
-          id: `msg-${Date.now()}`,
+          id: generateId$1(),
           role: "assistant",
           content: "抱歉，请求失败，请稍后重试。",
           created_at: (/* @__PURE__ */ new Date()).toISOString()
         };
-        addMessage(activeConversationId, errorMessage);
+        addMessage(conversationId, errorMessage);
       } finally {
         setIsLoading(false);
-        setInputValue("");
+        setShowToolPanel(false);
+        setReferenceImages([]);
+        setVideoReferenceImages([]);
       }
     };
-    const handleRegenerate = async (messageId) => {
+    const handleChatCompletion = async (conversationId, _content, userMessage) => {
       var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j, _k, _l, _m;
-      if (!apiKey || isLoading) return;
+      const conv = conversations.find((c) => c.id === conversationId);
+      const rolePresetId = (conv == null ? void 0 : conv.role_preset_id) || activeRolePresetId;
+      const activePresetData = rolePresets.find((p) => p.id === rolePresetId);
+      let messagesWithUser = conv ? [...conv.messages.map((m) => ({ role: m.role, content: m.content })), { role: userMessage.role, content: userMessage.content }] : [{ role: userMessage.role, content: userMessage.content }];
+      if (activePresetData && activePresetData.system_prompt && !(conv == null ? void 0 : conv.messages.some((m) => m.role === "system"))) {
+        messagesWithUser = [{ role: "system", content: activePresetData.system_prompt }, ...messagesWithUser];
+      }
+      const response = await createChatCompletion(messagesWithUser, chatOptions);
+      if (!response.ok) {
+        const errorBody = await response.text();
+        throw new Error(`API request failed: ${response.status} - ${errorBody}`);
+      }
+      const reader = (_a = response.body) == null ? void 0 : _a.getReader();
+      const decoder = new TextDecoder("utf-8");
+      let contentResult = "";
+      let thinkingResult = "";
+      let buffer = "";
+      const assistantMessage = {
+        id: generateId$1(),
+        role: "assistant",
+        content: "",
+        thinking: "",
+        created_at: (/* @__PURE__ */ new Date()).toISOString()
+      };
+      addMessage(conversationId, assistantMessage);
+      while (reader) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        const chunk = decoder.decode(value, { stream: true });
+        buffer += chunk;
+        const lines = buffer.split("\n");
+        for (let i = 0; i < lines.length - 1; i++) {
+          const line = lines[i];
+          if (line.startsWith("data: ")) {
+            const data = line.substring(6);
+            if (data === "[DONE]") continue;
+            try {
+              const parsed = JSON.parse(data);
+              const text2 = ((_d = (_c = (_b = parsed.choices) == null ? void 0 : _b[0]) == null ? void 0 : _c.delta) == null ? void 0 : _d.content) || ((_g = (_f = (_e = parsed.choices) == null ? void 0 : _e[0]) == null ? void 0 : _f.message) == null ? void 0 : _g.content) || "";
+              const thinking = ((_j = (_i = (_h = parsed.choices) == null ? void 0 : _h[0]) == null ? void 0 : _i.delta) == null ? void 0 : _j.reasoning_content) || ((_m = (_l = (_k = parsed.choices) == null ? void 0 : _k[0]) == null ? void 0 : _l.message) == null ? void 0 : _m.reasoning_content) || "";
+              if (text2) {
+                contentResult += text2;
+                updateMessage(conversationId, assistantMessage.id, contentResult, thinkingResult);
+                scrollToBottom();
+              }
+              if (thinking) {
+                thinkingResult += thinking;
+                updateMessage(conversationId, assistantMessage.id, contentResult, thinkingResult);
+                scrollToBottom();
+              }
+            } catch {
+            }
+          }
+        }
+        buffer = lines[lines.length - 1] || "";
+      }
+      if (!thinkingResult.trim()) {
+        updateMessage(conversationId, assistantMessage.id, contentResult, void 0);
+      }
+    };
+    const handleImageGeneration = async (prompt, conversationId) => {
+      var _a;
+      const extraBody = {};
+      if (toolOptions.negativePrompt) {
+        extraBody.negative_prompt = toolOptions.negativePrompt;
+      }
+      if (toolOptions.imageSeed) {
+        extraBody.seed = parseInt(toolOptions.imageSeed, 10);
+      }
+      if (referenceImages.length > 0) {
+        extraBody.images = referenceImages;
+      }
+      const result = await generateImage(prompt, toolOptions.imageModel, toolOptions.imageSize, extraBody);
+      const imageResult = {
+        id: generateId$1(),
+        url: result.url,
+        prompt,
+        size: toolOptions.imageSize,
+        model: toolOptions.imageModel,
+        seed: toolOptions.imageSeed ? parseInt(toolOptions.imageSeed, 10) : void 0,
+        referenceImages: referenceImages.length > 0 ? referenceImages : void 0,
+        createdAt: Date.now()
+      };
+      addImageToHistory(imageResult);
+      const imageMessage = {
+        id: generateId$1(),
+        role: "assistant",
+        content: `![生成的图像](${result.url})
+
+**提示词**: ${prompt}
+**尺寸**: ${toolOptions.imageSize}
+**模型**: ${(_a = MODEL_OPTIONS.find((m) => m.value === toolOptions.imageModel)) == null ? void 0 : _a.label}`,
+        created_at: (/* @__PURE__ */ new Date()).toISOString()
+      };
+      addMessage(conversationId, imageMessage);
+    };
+    const handleVideoGeneration = async (prompt, conversationId) => {
+      const [width, height] = toolOptions.videoResolution.split("x").map(Number);
+      const payload = {
+        width,
+        height,
+        num_frames: toolOptions.videoFrameCount,
+        frame_rate: toolOptions.videoFrameRate
+      };
+      if (toolOptions.negativePrompt) {
+        payload.negative_prompt = toolOptions.negativePrompt;
+      }
+      if (toolOptions.videoSeed) {
+        payload.seed = parseInt(toolOptions.videoSeed, 10);
+      }
+      if (videoReferenceImages.length > 0) {
+        if (toolOptions.videoMode === "image2vid") {
+          payload.image = videoReferenceImages[0];
+        } else if (toolOptions.videoMode === "multi-image" || toolOptions.videoMode === "keyframes") {
+          payload.extra_body = {
+            image: videoReferenceImages,
+            ...toolOptions.videoMode === "keyframes" ? { mode: "keyframes" } : {}
+          };
+        }
+      }
+      const result = await generateVideo(prompt, toolOptions.videoModel, payload);
+      const task = {
+        id: result.task_id,
+        user_id: userId,
+        task_id: result.task_id,
+        prompt,
+        status: result.status,
+        progress: result.progress,
+        size: result.size || toolOptions.videoResolution,
+        created_at: (/* @__PURE__ */ new Date()).toISOString(),
+        updated_at: (/* @__PURE__ */ new Date()).toISOString()
+      };
+      addVideoTask(task);
+      const duration = (toolOptions.videoFrameCount / toolOptions.videoFrameRate).toFixed(1);
+      const videoMessage = {
+        id: generateId$1(),
+        role: "assistant",
+        content: `🎬 **视频任务已创建**
+
+**提示词**: ${prompt}
+**状态**: ${task.status === "queued" ? "排队中" : "处理中"}
+**分辨率**: ${toolOptions.videoResolution}
+**预计时长**: ${duration} 秒
+**帧数**: ${toolOptions.videoFrameCount}
+**帧率**: ${toolOptions.videoFrameRate} FPS`,
+        created_at: (/* @__PURE__ */ new Date()).toISOString()
+      };
+      addMessage(conversationId, videoMessage);
+    };
+    const handleRegenerate = async (messageId) => {
+      if (!activeConversationId || !apiKey) return;
       const conv = conversations.find((c) => c.id === activeConversationId);
       if (!conv) return;
       const messageIndex = conv.messages.findIndex((m) => m.id === messageId);
       if (messageIndex <= 0) return;
       const userMessage = conv.messages[messageIndex - 1];
-      if (userMessage.role !== "user") return;
+      if (!userMessage || userMessage.role !== "user") return;
+      deleteMessage(activeConversationId, messageId);
       setIsLoading(true);
       try {
-        const rolePresetId = conv.role_preset_id || activeRolePresetId;
-        const activePresetData = rolePresets.find((p) => p.id === rolePresetId);
-        let messagesWithUser = conv.messages.slice(0, messageIndex).map((m) => ({ role: m.role, content: m.content }));
-        if (activePresetData && activePresetData.system_prompt && !conv.messages.some((m) => m.role === "system")) {
-          messagesWithUser = [{ role: "system", content: activePresetData.system_prompt }, ...messagesWithUser];
-        }
-        const response = await createChatCompletion(messagesWithUser);
-        if (!response.ok) {
-          const errorBody = await response.text();
-          throw new Error(`API request failed: ${response.status} - ${errorBody}`);
-        }
-        const reader = (_a = response.body) == null ? void 0 : _a.getReader();
-        const decoder = new TextDecoder("utf-8");
-        let contentResult = "";
-        let thinkingResult = "";
-        let buffer = "";
-        while (reader) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          const chunk = decoder.decode(value, { stream: true });
-          buffer += chunk;
-          const lines = buffer.split("\n");
-          for (let i = 0; i < lines.length - 1; i++) {
-            const line = lines[i];
-            if (line.startsWith("data: ")) {
-              const data = line.substring(6);
-              if (data === "[DONE]") continue;
-              try {
-                const parsed = JSON.parse(data);
-                const text2 = ((_d = (_c = (_b = parsed.choices) == null ? void 0 : _b[0]) == null ? void 0 : _c.delta) == null ? void 0 : _d.content) || ((_g = (_f = (_e = parsed.choices) == null ? void 0 : _e[0]) == null ? void 0 : _f.message) == null ? void 0 : _g.content) || "";
-                const thinking = ((_j = (_i = (_h = parsed.choices) == null ? void 0 : _h[0]) == null ? void 0 : _i.delta) == null ? void 0 : _j.reasoning_content) || ((_m = (_l = (_k = parsed.choices) == null ? void 0 : _k[0]) == null ? void 0 : _l.message) == null ? void 0 : _m.reasoning_content) || "";
-                if (text2) {
-                  contentResult += text2;
-                  updateMessage(activeConversationId, messageId, contentResult, thinkingResult);
-                  scrollToBottom();
-                }
-                if (thinking) {
-                  thinkingResult += thinking;
-                  updateMessage(activeConversationId, messageId, contentResult, thinkingResult);
-                  scrollToBottom();
-                }
-              } catch {
-              }
-            }
-          }
-          buffer = lines[lines.length - 1] || "";
-        }
-        if (!thinkingResult.trim()) {
-          updateMessage(activeConversationId, messageId, contentResult, void 0);
-        }
-      } catch (error) {
-        console.error("重新生成失败:", error);
+        await handleSendMessage(userMessage.content);
       } finally {
         setIsLoading(false);
       }
     };
-    const handleCopyMessage = async (messageId, content2) => {
+    const handleDeleteMessage = async (messageId) => {
+      if (!activeConversationId) return;
+      deleteMessage(activeConversationId, messageId);
+    };
+    const handleImageUpload = (e) => {
+      const files = e.target.files;
+      if (!files) return;
+      const newImages = [];
+      const fileArray = Array.from(files).slice(0, MAX_REFERENCE_IMAGES - referenceImages.length);
+      fileArray.forEach((file) => {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          var _a;
+          newImages.push((_a = event.target) == null ? void 0 : _a.result);
+          if (newImages.length === fileArray.length) {
+            setReferenceImages((prev) => [...prev, ...newImages]);
+          }
+        };
+        reader.readAsDataURL(file);
+      });
+    };
+    const removeReferenceImage = (index2) => {
+      setReferenceImages((prev) => prev.filter((_, i) => i !== index2));
+    };
+    const handleVideoImageUpload = (e) => {
+      const files = e.target.files;
+      if (!files) return;
+      const newImages = [];
+      const limit = toolOptions.videoMode === "keyframes" || toolOptions.videoMode === "multi-image" ? 4 : 1;
+      const fileArray = Array.from(files).slice(0, limit - videoReferenceImages.length);
+      fileArray.forEach((file) => {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          var _a;
+          newImages.push((_a = event.target) == null ? void 0 : _a.result);
+          if (newImages.length === fileArray.length) {
+            setVideoReferenceImages((prev) => [...prev, ...newImages]);
+          }
+        };
+        reader.readAsDataURL(file);
+      });
+    };
+    const removeVideoReferenceImage = (index2) => {
+      setVideoReferenceImages((prev) => prev.filter((_, i) => i !== index2));
+    };
+    const handleAddImageUrl = () => {
+      const trimmedUrl = imageUrlInput.trim();
+      if (!trimmedUrl) return;
+      if (referenceImages.length >= MAX_REFERENCE_IMAGES) {
+        return;
+      }
+      setReferenceImages((prev) => [...prev, trimmedUrl]);
+      setImageUrlInput("");
+    };
+    const handleAddVideoImageUrl = () => {
+      const trimmedUrl = videoImageUrlInput.trim();
+      if (!trimmedUrl) return;
+      const limit = toolOptions.videoMode === "keyframes" || toolOptions.videoMode === "multi-image" ? MAX_VIDEO_REFERENCE_IMAGES : 1;
+      if (videoReferenceImages.length >= limit) {
+        return;
+      }
+      setVideoReferenceImages((prev) => [...prev, trimmedUrl]);
+      setVideoImageUrlInput("");
+    };
+    const handlePresetSelect = (preset) => {
+      setChatOptions({
+        temperature: preset.temperature,
+        top_p: preset.top_p,
+        max_tokens: preset.max_tokens,
+        enable_thinking: preset.thinking
+      });
+      setActivePreset(preset.id);
+    };
+    const handleToggleThinking = () => {
+      setChatOptions((prev) => ({
+        ...prev,
+        enable_thinking: !prev.enable_thinking
+      }));
+      setActivePreset(null);
+    };
+    const removeMarkdown = (text2) => {
+      return text2.replace(/```(\w*)\n([\s\S]*?)```/g, "$2").replace(/`([^`]+)`/g, "$1").replace(/\*\*([^*]+)\*\*/g, "$1").replace(/\*([^*]+)\*/g, "$1").replace(/#{1,6}\s+/g, "").replace(/!\[([^\]]+)\]\([^)]+\)/g, "$1").replace(/\[([^\]]+)\]\([^)]+\)/g, "$1").replace(/---/g, "").replace(/>>>\s*/g, "").replace(/>\s*/g, "").replace(/^\s*\n/gm, "").trim();
+    };
+    const handleCopy = async (messageId, content2) => {
+      const plainText = removeMarkdown(content2);
       try {
-        await navigator.clipboard.writeText(content2);
-        setCopiedMessageId(messageId);
-        setTimeout(() => setCopiedMessageId(null), 2e3);
+        await navigator.clipboard.writeText(plainText);
+        setCopiedStates((prev) => ({ ...prev, [messageId]: { type: "text", value: true } }));
+        setTimeout(() => {
+          setCopiedStates((prev) => ({ ...prev, [messageId]: { type: "text", value: false } }));
+        }, 2e3);
       } catch {
         console.error("复制失败");
       }
     };
-    const handleGenerateImage = async () => {
-      if (!imagePrompt.trim() || !apiKey) return;
-      setIsGeneratingImage(true);
+    const handleCopyMarkdown = async (messageId, content2) => {
       try {
-        const result = await generateImage(imagePrompt, "agnes-image-2.1-flash", imageSize);
-        const imageResult = {
-          id: `img-${Date.now()}`,
-          url: result.url,
-          prompt: imagePrompt,
-          size: imageSize,
-          model: "agnes-image-2.1-flash",
-          createdAt: Date.now()
-        };
-        setPreviewImage(imageResult);
-        addImageToHistory(imageResult);
-      } catch (error) {
-        console.error("生成图片失败:", error);
-      } finally {
-        setIsGeneratingImage(false);
+        await navigator.clipboard.writeText(content2);
+        setCopiedStates((prev) => ({ ...prev, [messageId]: { type: "markdown", value: true } }));
+        setTimeout(() => {
+          setCopiedStates((prev) => ({ ...prev, [messageId]: { type: "markdown", value: false } }));
+        }, 2e3);
+      } catch {
+        console.error("复制失败");
       }
     };
-    const handleGenerateVideo = async () => {
-      if (!videoPrompt.trim() || !apiKey) return;
-      setIsGeneratingVideo(true);
+    const handleEditMessage = (messageId, content2) => {
+      setEditingMessage(messageId);
+      setEditingContent(content2);
+    };
+    const handleSaveEdit = async () => {
+      if (!editingMessage || !editingContent.trim() || !activeConversationId) return;
+      const conv = conversations.find((c) => c.id === activeConversationId);
+      if (!conv) return;
+      const messageIndex = conv.messages.findIndex((m) => m.id === editingMessage);
+      if (messageIndex < 0) return;
+      const editedContent = editingContent.trim();
+      const messagesToDelete = conv.messages.slice(messageIndex);
+      for (const msg of messagesToDelete) {
+        deleteMessage(activeConversationId, msg.id);
+      }
+      setEditingMessage(null);
+      setEditingContent("");
+      setIsLoading(true);
       try {
-        const [width, height] = videoSize.split("x").map(Number);
-        const result = await generateVideo(videoPrompt, {
-          width,
-          height,
-          num_frames: 16,
-          frame_rate: 8
-        });
-        addVideoTask({
-          id: `video-${Date.now()}`,
-          user_id: userId,
-          task_id: result.task_id,
-          prompt: videoPrompt,
-          status: "pending",
-          progress: 0,
-          size: videoSize,
-          created_at: (/* @__PURE__ */ new Date()).toISOString(),
-          updated_at: (/* @__PURE__ */ new Date()).toISOString()
-        });
-        setShowVideoModal(false);
-        setVideoPrompt("");
-      } catch (error) {
-        console.error("生成视频失败:", error);
+        await handleSendMessage(editedContent);
       } finally {
-        setIsGeneratingVideo(false);
+        setIsLoading(false);
       }
     };
-    const handleKeyDown = (e) => {
-      if (e.key === "Enter" && !e.shiftKey) {
-        e.preventDefault();
-        handleSendMessage(inputValue);
-      }
+    const handleCancelEdit = () => {
+      setEditingMessage(null);
+      setEditingContent("");
     };
-    const handleCreateNewConversation = () => {
-      createConversation("新对话");
-      setInputValue("");
-    };
-    const getRolePresetIcon = (iconName) => {
-      const icons = {
-        MessageSquare: /* @__PURE__ */ jsxRuntimeExports.jsx(Sparkles, { size: 16 }),
-        Lightbulb: /* @__PURE__ */ jsxRuntimeExports.jsx(Sparkles, { size: 16 }),
-        FileText: /* @__PURE__ */ jsxRuntimeExports.jsx(Sparkles, { size: 16 }),
-        Code: /* @__PURE__ */ jsxRuntimeExports.jsx(Sparkles, { size: 16 })
-      };
-      return icons[iconName] || /* @__PURE__ */ jsxRuntimeExports.jsx(Sparkles, { size: 16 });
-    };
-    const currentPreset = rolePresets.find((p) => p.id === activeRolePresetId);
-    return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "h-screen flex flex-col bg-gray-50 dark:bg-gray-900", children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsxs("header", { className: "flex items-center justify-between px-4 py-3 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-3", children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx(
-            "button",
-            {
-              onClick: () => onNavigate("history"),
-              className: "p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors",
-              children: /* @__PURE__ */ jsxRuntimeExports.jsx(Menu, { size: 20, className: "text-gray-600 dark:text-gray-400" })
-            }
-          ),
-          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-2", children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "w-8 h-8 rounded-lg bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center", children: /* @__PURE__ */ jsxRuntimeExports.jsx(WandSparkles, { size: 18, className: "text-purple-600 dark:text-purple-400" }) }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx("h1", { className: "text-lg font-semibold text-gray-900 dark:text-white", children: "Agnes AI" })
-          ] })
-        ] }),
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-2", children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx(
-            "button",
-            {
-              onClick: () => onNavigate("font"),
-              className: "px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors",
-              children: "字体生成"
-            }
-          ),
-          /* @__PURE__ */ jsxRuntimeExports.jsx(
-            "button",
-            {
-              onClick: () => onNavigate("history"),
-              className: "px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors",
-              children: "历史记录"
-            }
-          )
-        ] })
-      ] }),
-      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-1 overflow-hidden", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("aside", { className: "w-72 border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 flex flex-col", children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "p-3", children: /* @__PURE__ */ jsxRuntimeExports.jsxs(
-            "button",
-            {
-              onClick: handleCreateNewConversation,
-              className: "w-full flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium text-white bg-purple-600 rounded-lg hover:bg-purple-700 transition-colors",
-              children: [
-                /* @__PURE__ */ jsxRuntimeExports.jsx(Plus, { size: 16 }),
-                "新对话"
-              ]
-            }
-          ) }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "px-3 mb-2", children: /* @__PURE__ */ jsxRuntimeExports.jsxs(
-            "button",
-            {
-              onClick: () => setShowRolePresets(!showRolePresets),
-              className: "flex items-center gap-2 w-full px-3 py-2 text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors",
-              children: [
-                /* @__PURE__ */ jsxRuntimeExports.jsx(Sparkles, { size: 16 }),
-                currentPreset ? `当前角色: ${currentPreset.name}` : "选择角色"
-              ]
-            }
-          ) }),
-          showRolePresets && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "px-3 pb-3", children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "space-y-1", children: rolePresets.map((preset) => /* @__PURE__ */ jsxRuntimeExports.jsxs(
-            "button",
-            {
-              onClick: () => {
-                setActiveRolePreset(preset.id);
-                setShowRolePresets(false);
-              },
-              className: `w-full flex items-center gap-2 px-3 py-2 text-sm rounded-lg transition-colors ${activeRolePresetId === preset.id ? "bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400" : "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700"}`,
-              children: [
-                getRolePresetIcon(preset.icon || ""),
-                preset.name
-              ]
-            },
-            preset.id
-          )) }) }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "flex-1 overflow-y-auto px-3 space-y-1", children: conversations.map((conv) => /* @__PURE__ */ jsxRuntimeExports.jsxs(
-            "div",
-            {
-              className: `flex items-center justify-between p-2 rounded-lg cursor-pointer transition-colors ${activeConversationId === conv.id ? "bg-purple-100 dark:bg-purple-900/30" : "hover:bg-gray-100 dark:hover:bg-gray-700"}`,
-              onClick: () => setActiveConversation(conv.id),
-              children: [
-                /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex-1 min-w-0", children: [
-                  /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-sm font-medium text-gray-900 dark:text-white truncate", children: conv.title }),
-                  /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-xs text-gray-500 dark:text-gray-400 truncate", children: conv.messages.length > 0 ? conv.messages[conv.messages.length - 1].content.substring(0, 30) : "暂无消息" })
-                ] }),
+    rolePresets.find((p) => p.id === activeRolePresetId);
+    return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: `flex h-screen overflow-hidden bg-gray-50 dark:bg-gray-900`, children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsxs(
+        "div",
+        {
+          className: `flex flex-col bg-white dark:bg-gray-800 transition-all duration-300 min-h-0 overflow-hidden flex-shrink-0 ${sidebarCollapsed ? "w-14" : "w-[180px] md:w-[200px]"}`,
+          children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "p-3 flex items-center justify-between", children: [
+              !sidebarCollapsed && /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsx("h2", { className: "text-sm font-semibold text-gray-800 dark:text-gray-200", children: "对话" }),
+                /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-1", children: [
+                  /* @__PURE__ */ jsxRuntimeExports.jsx(
+                    "button",
+                    {
+                      onClick: () => onNavigate("history"),
+                      className: "p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400",
+                      title: "历史记录",
+                      children: /* @__PURE__ */ jsxRuntimeExports.jsx(History, { className: "w-4 h-4" })
+                    }
+                  ),
+                  /* @__PURE__ */ jsxRuntimeExports.jsx(
+                    "button",
+                    {
+                      onClick: () => onNavigate("presets"),
+                      className: "p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400",
+                      title: "角色预设",
+                      children: /* @__PURE__ */ jsxRuntimeExports.jsx(Sparkles, { className: "w-4 h-4" })
+                    }
+                  ),
+                  /* @__PURE__ */ jsxRuntimeExports.jsx(
+                    "button",
+                    {
+                      onClick: () => onNavigate("settings"),
+                      className: "p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400",
+                      title: "API设置",
+                      children: /* @__PURE__ */ jsxRuntimeExports.jsx(Settings, { className: "w-4 h-4" })
+                    }
+                  ),
+                  /* @__PURE__ */ jsxRuntimeExports.jsx(
+                    "button",
+                    {
+                      onClick: handleNewConversation,
+                      className: "p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400",
+                      title: "新对话",
+                      children: /* @__PURE__ */ jsxRuntimeExports.jsx(Plus, { className: "w-4 h-4" })
+                    }
+                  )
+                ] })
+              ] }),
+              sidebarCollapsed && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-col items-center gap-2", children: [
                 /* @__PURE__ */ jsxRuntimeExports.jsx(
                   "button",
                   {
-                    onClick: (e) => {
-                      e.stopPropagation();
-                      deleteConversation(conv.id);
-                    },
-                    className: "p-1 text-gray-400 hover:text-red-500 transition-colors",
-                    children: /* @__PURE__ */ jsxRuntimeExports.jsx(Trash2, { size: 14 })
+                    onClick: () => onNavigate("history"),
+                    className: "p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400",
+                    title: "历史记录",
+                    children: /* @__PURE__ */ jsxRuntimeExports.jsx(History, { className: "w-4 h-4" })
+                  }
+                ),
+                /* @__PURE__ */ jsxRuntimeExports.jsx(
+                  "button",
+                  {
+                    onClick: () => onNavigate("presets"),
+                    className: "p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400",
+                    title: "角色预设",
+                    children: /* @__PURE__ */ jsxRuntimeExports.jsx(Sparkles, { className: "w-4 h-4" })
+                  }
+                ),
+                /* @__PURE__ */ jsxRuntimeExports.jsx(
+                  "button",
+                  {
+                    onClick: () => onNavigate("settings"),
+                    className: "p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400",
+                    title: "API设置",
+                    children: /* @__PURE__ */ jsxRuntimeExports.jsx(Settings, { className: "w-4 h-4" })
+                  }
+                ),
+                /* @__PURE__ */ jsxRuntimeExports.jsx(
+                  "button",
+                  {
+                    onClick: handleNewConversation,
+                    className: "p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400",
+                    title: "新对话",
+                    children: /* @__PURE__ */ jsxRuntimeExports.jsx(Plus, { className: "w-4 h-4" })
                   }
                 )
-              ]
-            },
-            conv.id
-          )) })
-        ] }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx("main", { className: "flex-1 flex flex-col", children: activeConversation ? /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex-1 overflow-y-auto p-4 space-y-4", children: [
-            activeConversation.messages.map((message, index2) => /* @__PURE__ */ jsxRuntimeExports.jsx(
+              ] })
+            ] }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "flex-1 overflow-y-auto", children: conversations.length === 0 ? /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: `p-4 text-center ${sidebarCollapsed ? "hidden" : ""}`, children: /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-gray-500 dark:text-gray-400", children: "暂无对话" }) }) : /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "space-y-1", children: conversations.map((conv) => /* @__PURE__ */ jsxRuntimeExports.jsx(
               "div",
               {
-                className: `flex gap-3 ${message.role === "user" ? "justify-end" : "justify-start"}`,
-                children: /* @__PURE__ */ jsxRuntimeExports.jsxs(
-                  "div",
-                  {
-                    className: `max-w-[75%] ${message.role === "user" ? "bg-purple-600 text-white rounded-xl rounded-tr-sm" : "bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-xl rounded-tl-sm"} p-4 shadow-sm relative`,
-                    children: [
-                      message.role === "assistant" && index2 > 0 && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "absolute -top-2 right-4 flex items-center gap-1 opacity-0 hover:opacity-100 transition-opacity", children: [
-                        /* @__PURE__ */ jsxRuntimeExports.jsx(
-                          "button",
-                          {
-                            onClick: () => handleRegenerate(message.id),
-                            className: "p-1.5 rounded-md bg-gray-100 dark:bg-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-500 transition-colors",
-                            title: "重新生成",
-                            children: /* @__PURE__ */ jsxRuntimeExports.jsx(RefreshCw, { size: 14 })
-                          }
-                        ),
-                        /* @__PURE__ */ jsxRuntimeExports.jsx(
-                          "button",
-                          {
-                            onClick: () => handleCopyMessage(message.id, message.content),
-                            className: "p-1.5 rounded-md bg-gray-100 dark:bg-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-500 transition-colors",
-                            title: "复制",
-                            children: copiedMessageId === message.id ? /* @__PURE__ */ jsxRuntimeExports.jsx(Check, { size: 14, className: "text-green-500" }) : /* @__PURE__ */ jsxRuntimeExports.jsx(Copy, { size: 14 })
-                          }
-                        )
-                      ] }),
-                      message.thinking && /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-xs text-gray-400 mb-2 italic", children: message.thinking }),
-                      /* @__PURE__ */ jsxRuntimeExports.jsx(Markdown, { remarkPlugins: [remarkGfm], className: "text-sm leading-relaxed", children: message.content })
-                    ]
-                  }
-                )
+                onClick: () => {
+                  setActiveConversation(conv.id);
+                  setEditingMessage(null);
+                },
+                className: `relative cursor-pointer transition-colors group ${activeConversationId === conv.id ? "bg-primary/10 text-primary" : "hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300"} ${sidebarCollapsed ? "p-2 flex justify-center" : "p-3"}`,
+                title: sidebarCollapsed ? conv.title : void 0,
+                children: sidebarCollapsed ? /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "w-8 h-8 rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-sm font-medium truncate", children: conv.title.charAt(0) }) : /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-start justify-between", children: [
+                  /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex-1 min-w-0", children: [
+                    /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "font-medium truncate", children: conv.title }),
+                    /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-xs text-gray-500 dark:text-gray-400 truncate mt-0.5", children: conv.messages.length > 0 ? conv.messages[conv.messages.length - 1].content.substring(0, 30) : "无消息" })
+                  ] }),
+                  /* @__PURE__ */ jsxRuntimeExports.jsx(
+                    "button",
+                    {
+                      onClick: (e) => {
+                        e.stopPropagation();
+                        handleDeleteConversation(conv.id);
+                      },
+                      className: "p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600 opacity-0 group-hover:opacity-100 transition-opacity",
+                      title: "删除对话",
+                      children: /* @__PURE__ */ jsxRuntimeExports.jsx(Trash2, { className: "w-4 h-4" })
+                    }
+                  )
+                ] })
               },
-              message.id
-            )),
-            isLoading && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "flex justify-start", children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-xl rounded-tl-sm p-4 shadow-sm", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-2", children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "w-2 h-2 bg-gray-400 rounded-full animate-bounce" }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "w-2 h-2 bg-gray-400 rounded-full animate-bounce", style: { animationDelay: "0.1s" } }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "w-2 h-2 bg-gray-400 rounded-full animate-bounce", style: { animationDelay: "0.2s" } })
-            ] }) }) }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx("div", { ref: messagesEndRef })
-          ] }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("footer", { className: "p-4 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-end gap-3", children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-2", children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsx(
-                "button",
-                {
-                  onClick: () => setShowImageModal(true),
-                  className: "p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors",
-                  title: "生成图片",
-                  children: /* @__PURE__ */ jsxRuntimeExports.jsx(Image, { size: 20, className: "text-gray-600 dark:text-gray-400" })
-                }
-              ),
-              /* @__PURE__ */ jsxRuntimeExports.jsx(
-                "button",
-                {
-                  onClick: () => setShowVideoModal(true),
-                  className: "p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors",
-                  title: "生成视频",
-                  children: /* @__PURE__ */ jsxRuntimeExports.jsx(Video, { size: 20, className: "text-gray-600 dark:text-gray-400" })
-                }
-              )
-            ] }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "flex-1 relative", children: /* @__PURE__ */ jsxRuntimeExports.jsx(
-              "textarea",
-              {
-                ref: inputRef,
-                value: inputValue,
-                onChange: (e) => setInputValue(e.target.value),
-                onKeyDown: handleKeyDown,
-                placeholder: "输入消息...",
-                className: "w-full px-4 py-3 bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl resize-none text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500",
-                rows: 2
-              }
-            ) }),
+              conv.id
+            )) }) }),
             /* @__PURE__ */ jsxRuntimeExports.jsx(
               "button",
               {
-                onClick: () => handleSendMessage(inputValue),
-                disabled: !inputValue.trim() || isLoading,
-                className: "p-3 bg-purple-600 text-white rounded-xl hover:bg-purple-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors",
-                children: /* @__PURE__ */ jsxRuntimeExports.jsx(Send, { size: 20 })
+                onClick: () => setSidebarCollapsed(!sidebarCollapsed),
+                className: "p-2 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center justify-center",
+                title: sidebarCollapsed ? "展开侧边栏" : "收起侧边栏",
+                children: sidebarCollapsed ? /* @__PURE__ */ jsxRuntimeExports.jsx(PanelLeft, { className: "w-4 h-4 text-gray-500 dark:text-gray-400" }) : /* @__PURE__ */ jsxRuntimeExports.jsx(PanelLeftClose, { className: "w-4 h-4 text-gray-500 dark:text-gray-400" })
               }
             )
-          ] }) })
-        ] }) : /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "flex-1 flex items-center justify-center", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "text-center", children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "w-16 h-16 mx-auto mb-4 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center", children: /* @__PURE__ */ jsxRuntimeExports.jsx(WandSparkles, { size: 32, className: "text-purple-600 dark:text-purple-400" }) }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("h2", { className: "text-xl font-semibold text-gray-900 dark:text-white mb-2", children: "欢迎使用 Agnes AI" }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-gray-500 dark:text-gray-400", children: '点击"新对话"开始聊天，或选择一个角色预设' })
-        ] }) }) })
-      ] }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx(Modal, { isOpen: showImageModal, onClose: () => setShowImageModal(false), title: "生成图片", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "space-y-4", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx("label", { className: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2", children: "提示词" }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx(
-            "textarea",
-            {
-              value: imagePrompt,
-              onChange: (e) => setImagePrompt(e.target.value),
-              placeholder: "描述你想要生成的图片...",
-              className: "w-full px-4 py-3 bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg resize-none text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:border-purple-500",
-              rows: 4
-            }
-          )
-        ] }),
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx("label", { className: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2", children: "图片尺寸" }),
-          /* @__PURE__ */ jsxRuntimeExports.jsxs(
-            "select",
-            {
-              value: imageSize,
-              onChange: (e) => setImageSize(e.target.value),
-              className: "w-full px-4 py-2 bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-white focus:outline-none focus:border-purple-500",
-              children: [
-                /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "512x512", children: "512x512" }),
-                /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "1024x1024", children: "1024x1024" }),
-                /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "1024x1536", children: "1024x1536" }),
-                /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "1536x1024", children: "1536x1024" })
-              ]
-            }
-          )
-        ] }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx(
-          "button",
-          {
-            onClick: handleGenerateImage,
-            disabled: !imagePrompt.trim() || isGeneratingImage,
-            className: "w-full py-2.5 bg-purple-600 text-white font-medium rounded-lg hover:bg-purple-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors",
-            children: isGeneratingImage ? "生成中..." : "生成图片"
-          }
-        )
-      ] }) }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx(Modal, { isOpen: showVideoModal, onClose: () => setShowVideoModal(false), title: "生成视频", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "space-y-4", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx("label", { className: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2", children: "提示词" }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx(
-            "textarea",
-            {
-              value: videoPrompt,
-              onChange: (e) => setVideoPrompt(e.target.value),
-              placeholder: "描述你想要生成的视频...",
-              className: "w-full px-4 py-3 bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg resize-none text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:border-purple-500",
-              rows: 4
-            }
-          )
-        ] }),
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx("label", { className: "block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2", children: "视频尺寸" }),
-          /* @__PURE__ */ jsxRuntimeExports.jsxs(
-            "select",
-            {
-              value: videoSize,
-              onChange: (e) => setVideoSize(e.target.value),
-              className: "w-full px-4 py-2 bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg text-sm text-gray-900 dark:text-white focus:outline-none focus:border-purple-500",
-              children: [
-                /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "512x512", children: "512x512" }),
-                /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "1024x1024", children: "1024x1024" }),
-                /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "1024x1536", children: "1024x1536" }),
-                /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "1536x1024", children: "1536x1024" })
-              ]
-            }
-          )
-        ] }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx(
-          "button",
-          {
-            onClick: handleGenerateVideo,
-            disabled: !videoPrompt.trim() || isGeneratingVideo,
-            className: "w-full py-2.5 bg-purple-600 text-white font-medium rounded-lg hover:bg-purple-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors",
-            children: isGeneratingVideo ? "生成中..." : "生成视频"
-          }
-        )
-      ] }) }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx(
-        ImagePreviewModal,
-        {
-          isOpen: !!previewImage,
-          onClose: () => setPreviewImage(null),
-          image: previewImage
+          ]
         }
-      )
+      ),
+      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "flex-1 flex flex-col bg-white dark:bg-gray-800 min-w-0 min-h-0 overflow-hidden", children: activeConversation || activeConversationId ? /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "flex-1 overflow-y-auto p-3", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "max-w-4xl mx-auto", children: [
+          activeConversation == null ? void 0 : activeConversation.messages.map((message) => {
+            const mediaUrlMatch = message.content.match(/!\[.*?\]\((https?:\/\/[^)]+)\)/);
+            const mediaUrl = mediaUrlMatch ? mediaUrlMatch[1] : void 0;
+            const isUser = message.role === "user";
+            const copiedState = copiedStates[message.id];
+            if (isUser) {
+              return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "flex justify-end mb-3", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "max-w-[75%]", children: [
+                editingMessage === message.id ? /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "px-3 py-2 rounded-xl shadow-sm bg-primary rounded-tr-md", children: [
+                  /* @__PURE__ */ jsxRuntimeExports.jsx(
+                    "textarea",
+                    {
+                      value: editingContent,
+                      onChange: (e) => setEditingContent(e.target.value),
+                      className: "w-full bg-transparent text-white text-sm resize-none outline-none",
+                      rows: 3,
+                      autoFocus: true
+                    }
+                  ),
+                  /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex justify-end gap-2 mt-2", children: [
+                    /* @__PURE__ */ jsxRuntimeExports.jsx(
+                      "button",
+                      {
+                        onClick: handleCancelEdit,
+                        className: "px-3 py-1 text-xs text-white/70 hover:text-white",
+                        children: "取消"
+                      }
+                    ),
+                    /* @__PURE__ */ jsxRuntimeExports.jsx(
+                      "button",
+                      {
+                        onClick: handleSaveEdit,
+                        className: "px-3 py-1 text-xs bg-white/20 rounded hover:bg-white/30 text-white",
+                        children: "保存"
+                      }
+                    )
+                  ] })
+                ] }) : /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "px-3 py-2 rounded-xl shadow-sm bg-primary text-white rounded-tr-md break-words", children: /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-sm leading-relaxed whitespace-pre-wrap", children: message.content }) }),
+                /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-2 mt-1 justify-end", children: [
+                  /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-xs text-gray-500 dark:text-gray-400", children: new Date(message.created_at || Date.now()).toLocaleTimeString("zh-CN") }),
+                  /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-1", children: [
+                    /* @__PURE__ */ jsxRuntimeExports.jsx(
+                      "button",
+                      {
+                        onClick: () => handleCopy(message.id, message.content),
+                        className: `w-7 h-7 flex items-center justify-center rounded-lg transition-all duration-200 ${(copiedState == null ? void 0 : copiedState.type) === "text" && copiedState.value ? "bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400" : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"}`,
+                        title: "复制",
+                        children: (copiedState == null ? void 0 : copiedState.type) === "text" && copiedState.value ? /* @__PURE__ */ jsxRuntimeExports.jsx(Check, { className: "w-4 h-4" }) : /* @__PURE__ */ jsxRuntimeExports.jsx(Copy, { className: "w-4 h-4" })
+                      }
+                    ),
+                    /* @__PURE__ */ jsxRuntimeExports.jsx(
+                      "button",
+                      {
+                        onClick: () => handleEditMessage(message.id, message.content),
+                        className: "w-7 h-7 flex items-center justify-center rounded-lg text-gray-500 dark:text-gray-400 hover:text-primary hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all duration-200",
+                        title: "修改",
+                        children: /* @__PURE__ */ jsxRuntimeExports.jsx(PenLine, { className: "w-4 h-4" })
+                      }
+                    )
+                  ] })
+                ] })
+              ] }) }, message.id);
+            }
+            return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "flex justify-start mb-3", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "w-full", children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "px-3 py-2 rounded-xl shadow-sm bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 rounded-tl-md break-words", children: [
+                message.thinking && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mb-2 p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg", children: [
+                  /* @__PURE__ */ jsxRuntimeExports.jsxs(
+                    "button",
+                    {
+                      onClick: () => setThinkingExpanded(!thinkingExpanded),
+                      className: "flex items-center gap-2 w-full mb-2",
+                      children: [
+                        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "w-2 h-2 rounded-full bg-primary" }),
+                        /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-xs font-medium text-primary", children: "思考" }),
+                        /* @__PURE__ */ jsxRuntimeExports.jsx(
+                          "svg",
+                          {
+                            className: `ml-auto w-3 h-3 text-primary transition-transform duration-200 ${thinkingExpanded ? "rotate-180" : ""}`,
+                            fill: "none",
+                            viewBox: "0 0 24 24",
+                            stroke: "currentColor",
+                            children: /* @__PURE__ */ jsxRuntimeExports.jsx("path", { strokeLinecap: "round", strokeLinejoin: "round", strokeWidth: 2, d: "M19 9l-7 7-7-7" })
+                          }
+                        )
+                      ]
+                    }
+                  ),
+                  /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: `overflow-hidden transition-all duration-200 ${thinkingExpanded ? "max-h-[200px] opacity-100 overflow-y-auto" : "max-h-0 opacity-0"}`, children: /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-xs text-gray-600 dark:text-gray-400 font-mono whitespace-pre-wrap", children: message.thinking }) })
+                ] }),
+                /* @__PURE__ */ jsxRuntimeExports.jsx(
+                  Markdown,
+                  {
+                    remarkPlugins: [remarkGfm],
+                    components: {
+                      p: ({ children }) => /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-sm leading-relaxed mb-2 last:mb-0", children }),
+                      strong: ({ children }) => /* @__PURE__ */ jsxRuntimeExports.jsx("strong", { className: "font-semibold text-gray-800 dark:text-gray-200", children }),
+                      em: ({ children }) => /* @__PURE__ */ jsxRuntimeExports.jsx("em", { className: "italic", children }),
+                      code: ({ className, children }) => {
+                        var _a;
+                        const content2 = String(children);
+                        const isBlock = className !== void 0 || content2.includes("\n");
+                        const language = ((_a = className == null ? void 0 : className.match(/language-([\w\u4e00-\u9fa5]+)/)) == null ? void 0 : _a[1]) || "";
+                        if (isBlock) {
+                          return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "overflow-x-auto", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "relative my-2", children: [
+                            /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center justify-between px-4 py-1.5 bg-gray-200 dark:bg-gray-700 rounded-t-lg border-b border-gray-300 dark:border-gray-600", children: [
+                              /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-xs font-medium text-gray-600 dark:text-gray-300 capitalize", children: language || "文本" }),
+                              /* @__PURE__ */ jsxRuntimeExports.jsx(
+                                "button",
+                                {
+                                  onClick: () => navigator.clipboard.writeText(content2),
+                                  className: "flex items-center justify-center rounded transition-all text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200",
+                                  title: "复制代码",
+                                  children: /* @__PURE__ */ jsxRuntimeExports.jsx(Copy, { className: "w-3.5 h-3.5" })
+                                }
+                              )
+                            ] }),
+                            /* @__PURE__ */ jsxRuntimeExports.jsx("pre", { className: "bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 p-4 text-sm break-all whitespace-pre-wrap rounded-b-lg", children: /* @__PURE__ */ jsxRuntimeExports.jsx("code", { children }) })
+                          ] }) });
+                        }
+                        return /* @__PURE__ */ jsxRuntimeExports.jsx("code", { className: "bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 px-1.5 py-0.5 rounded text-sm font-mono break-all", children });
+                      },
+                      a: ({ href, children }) => /* @__PURE__ */ jsxRuntimeExports.jsx("a", { href, target: "_blank", rel: "noopener noreferrer", className: "text-primary hover:underline", children }),
+                      ul: ({ children }) => /* @__PURE__ */ jsxRuntimeExports.jsx("ul", { className: "list-disc list-inside mb-2 space-y-1 break-words", children }),
+                      ol: ({ children }) => /* @__PURE__ */ jsxRuntimeExports.jsx("ol", { className: "list-decimal list-inside mb-2 space-y-1 break-words", children }),
+                      li: ({ children }) => /* @__PURE__ */ jsxRuntimeExports.jsx("li", { className: "text-sm break-words", children }),
+                      blockquote: ({ children }) => /* @__PURE__ */ jsxRuntimeExports.jsx("blockquote", { className: "border-l-4 border-primary pl-4 italic text-gray-600 dark:text-gray-400 my-2 break-words", children }),
+                      h1: ({ children }) => /* @__PURE__ */ jsxRuntimeExports.jsx("h1", { className: "text-xl font-bold mb-2 text-gray-800 dark:text-gray-200", children }),
+                      h2: ({ children }) => /* @__PURE__ */ jsxRuntimeExports.jsx("h2", { className: "text-lg font-bold mb-2 text-gray-800 dark:text-gray-200", children }),
+                      h3: ({ children }) => /* @__PURE__ */ jsxRuntimeExports.jsx("h3", { className: "text-base font-bold mb-2 text-gray-800 dark:text-gray-200", children }),
+                      hr: () => /* @__PURE__ */ jsxRuntimeExports.jsx("hr", { className: "border-gray-200 dark:border-gray-700 my-4" }),
+                      img: ({ src, alt }) => /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "inline-block my-2 cursor-pointer", children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+                        "img",
+                        {
+                          src,
+                          alt,
+                          className: "max-w-xs max-h-[200px] rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 object-contain hover:opacity-90 transition-opacity cursor-pointer"
+                        }
+                      ) })
+                    },
+                    children: message.content
+                  }
+                )
+              ] }),
+              /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-2 mt-1.5 justify-start", children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-xs text-gray-500 dark:text-gray-400", children: new Date(message.created_at || Date.now()).toLocaleTimeString("zh-CN") }),
+                /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-1", children: [
+                  /* @__PURE__ */ jsxRuntimeExports.jsx(
+                    "button",
+                    {
+                      onClick: () => handleCopyMarkdown(message.id, message.content),
+                      className: `w-7 h-7 flex items-center justify-center rounded-lg transition-all duration-200 ${(copiedState == null ? void 0 : copiedState.type) === "markdown" && copiedState.value ? "bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400" : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"}`,
+                      title: "复制Markdown",
+                      children: (copiedState == null ? void 0 : copiedState.type) === "markdown" && copiedState.value ? /* @__PURE__ */ jsxRuntimeExports.jsx(Check, { className: "w-4 h-4" }) : /* @__PURE__ */ jsxRuntimeExports.jsx(FileText, { className: "w-4 h-4" })
+                    }
+                  ),
+                  /* @__PURE__ */ jsxRuntimeExports.jsx(
+                    "button",
+                    {
+                      onClick: () => handleCopy(message.id, message.content),
+                      className: `w-7 h-7 flex items-center justify-center rounded-lg transition-all duration-200 ${(copiedState == null ? void 0 : copiedState.type) === "text" && copiedState.value ? "bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400" : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"}`,
+                      title: "复制文本",
+                      children: (copiedState == null ? void 0 : copiedState.type) === "text" && copiedState.value ? /* @__PURE__ */ jsxRuntimeExports.jsx(Check, { className: "w-4 h-4" }) : /* @__PURE__ */ jsxRuntimeExports.jsx(Copy, { className: "w-4 h-4" })
+                    }
+                  ),
+                  mediaUrl && /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
+                    /* @__PURE__ */ jsxRuntimeExports.jsx(
+                      "button",
+                      {
+                        onClick: () => {
+                          try {
+                            navigator.clipboard.writeText(mediaUrl);
+                            setCopiedStates((prev) => ({ ...prev, [message.id]: { type: "url", value: true } }));
+                            setTimeout(() => {
+                              setCopiedStates((prev) => ({ ...prev, [message.id]: { type: "url", value: false } }));
+                            }, 2e3);
+                          } catch {
+                            console.error("复制失败");
+                          }
+                        },
+                        className: `w-7 h-7 flex items-center justify-center rounded-lg transition-all duration-200 ${(copiedState == null ? void 0 : copiedState.type) === "url" && copiedState.value ? "bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400" : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"}`,
+                        title: "复制链接",
+                        children: (copiedState == null ? void 0 : copiedState.type) === "url" && copiedState.value ? /* @__PURE__ */ jsxRuntimeExports.jsx(Check, { className: "w-4 h-4" }) : /* @__PURE__ */ jsxRuntimeExports.jsx(Link2, { className: "w-4 h-4" })
+                      }
+                    ),
+                    /* @__PURE__ */ jsxRuntimeExports.jsx(
+                      "button",
+                      {
+                        onClick: () => {
+                          const link2 = document.createElement("a");
+                          link2.href = mediaUrl;
+                          link2.download = `image-${Date.now()}.png`;
+                          document.body.appendChild(link2);
+                          link2.click();
+                          document.body.removeChild(link2);
+                        },
+                        className: "w-7 h-7 flex items-center justify-center rounded-lg text-gray-500 dark:text-gray-400 hover:text-primary hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all duration-200",
+                        title: "下载",
+                        children: /* @__PURE__ */ jsxRuntimeExports.jsx(Download, { className: "w-4 h-4" })
+                      }
+                    )
+                  ] }),
+                  /* @__PURE__ */ jsxRuntimeExports.jsx(
+                    "button",
+                    {
+                      onClick: () => handleRegenerate(message.id),
+                      className: "w-7 h-7 flex items-center justify-center rounded-lg text-gray-500 dark:text-gray-400 hover:text-primary hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all duration-200",
+                      title: "重新生成",
+                      children: /* @__PURE__ */ jsxRuntimeExports.jsx(RefreshCw, { className: "w-4 h-4" })
+                    }
+                  ),
+                  /* @__PURE__ */ jsxRuntimeExports.jsx(
+                    "button",
+                    {
+                      onClick: () => handleDeleteMessage(message.id),
+                      className: "w-7 h-7 flex items-center justify-center rounded-lg text-gray-500 dark:text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all duration-200",
+                      title: "删除",
+                      children: /* @__PURE__ */ jsxRuntimeExports.jsx(Trash2, { className: "w-4 h-4" })
+                    }
+                  )
+                ] })
+              ] })
+            ] }) }, message.id);
+          }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { ref: messagesEndRef })
+        ] }) }),
+        showToolPanel && (activeTool === "image" || activeTool === "video") && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "bg-white dark:bg-gray-800", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx(
+            "button",
+            {
+              onClick: () => setNegativePromptExpanded(!negativePromptExpanded),
+              className: "w-full flex items-center justify-center py-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors",
+              children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+                "svg",
+                {
+                  className: `w-4 h-4 transition-transform ${negativePromptExpanded ? "rotate-180" : ""}`,
+                  fill: "none",
+                  stroke: "currentColor",
+                  viewBox: "0 0 24 24",
+                  children: /* @__PURE__ */ jsxRuntimeExports.jsx("path", { strokeLinecap: "round", strokeLinejoin: "round", strokeWidth: 2, d: "M19 9l-7 7-7-7" })
+                }
+              )
+            }
+          ),
+          negativePromptExpanded && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "p-4", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "max-w-4xl mx-auto", children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "flex flex-wrap gap-1.5 mb-2", children: NEGATIVE_TAGS.map((tag) => /* @__PURE__ */ jsxRuntimeExports.jsx(
+              "button",
+              {
+                onClick: () => {
+                  setToolOptions((prev) => ({
+                    ...prev,
+                    negativePrompt: prev.negativePrompt.includes(tag) ? prev.negativePrompt.replace(tag, "").replace(/,\s*/g, ",").replace(/^,|,$/g, "").trim() : prev.negativePrompt ? `${prev.negativePrompt}, ${tag}` : tag
+                  }));
+                },
+                className: `px-2 py-1 rounded-md text-xs transition-all ${toolOptions.negativePrompt.includes(tag) ? "bg-primary text-white" : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"}`,
+                children: tag
+              },
+              tag
+            )) }),
+            /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "relative", children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsx(
+                "input",
+                {
+                  type: "text",
+                  value: toolOptions.negativePrompt,
+                  onChange: (e) => setToolOptions((prev) => ({ ...prev, negativePrompt: e.target.value })),
+                  placeholder: "输入不想要的内容...",
+                  className: "w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-1 focus:ring-primary pr-8"
+                }
+              ),
+              toolOptions.negativePrompt && /* @__PURE__ */ jsxRuntimeExports.jsx(
+                "button",
+                {
+                  onClick: () => setToolOptions((prev) => ({ ...prev, negativePrompt: "" })),
+                  className: "absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200",
+                  children: /* @__PURE__ */ jsxRuntimeExports.jsx(X, { className: "w-4 h-4" })
+                }
+              )
+            ] })
+          ] }) })
+        ] }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "p-2 bg-white dark:bg-gray-800", children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "max-w-4xl mx-auto", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "rounded-xl bg-gray-100 dark:bg-gray-700 shadow-sm", children: [
+          activeTool === "image" && referenceImages.length > 0 && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "flex items-center gap-2 px-3 pt-3", children: referenceImages.map((img, index2) => /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "relative group", children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx(
+              "img",
+              {
+                src: img,
+                alt: `参考图 ${index2 + 1}`,
+                className: "w-10 h-10 object-cover rounded-lg border border-gray-200 dark:border-gray-600"
+              }
+            ),
+            /* @__PURE__ */ jsxRuntimeExports.jsx(
+              "button",
+              {
+                onClick: () => removeReferenceImage(index2),
+                className: "absolute -top-1 -right-1 w-4 h-4 flex items-center justify-center rounded-full bg-red-500 text-white shadow-md opacity-0 group-hover:opacity-100 transition-opacity",
+                children: /* @__PURE__ */ jsxRuntimeExports.jsx(X, { className: "w-2 h-2" })
+              }
+            )
+          ] }, index2)) }),
+          activeTool === "video" && (toolOptions.videoMode === "image2vid" || toolOptions.videoMode === "multi-image" || toolOptions.videoMode === "keyframes") && videoReferenceImages.length > 0 && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "flex items-center gap-2 px-3 pt-3", children: videoReferenceImages.map((img, index2) => {
+            const isKeyframesMode = toolOptions.videoMode === "keyframes";
+            return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "relative group", children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsx(
+                "img",
+                {
+                  src: img,
+                  alt: `参考图${index2 + 1}`,
+                  className: "w-10 h-10 object-cover rounded-lg border border-gray-200 dark:border-gray-600"
+                }
+              ),
+              isKeyframesMode && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "absolute -bottom-1 left-1/2 -translate-x-1/2 bg-primary/90 text-white text-[10px] px-1.5 py-0.5 rounded whitespace-nowrap", children: index2 === 0 ? "首帧" : index2 === videoReferenceImages.length - 1 ? "尾帧" : "参考" }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx(
+                "button",
+                {
+                  onClick: () => removeVideoReferenceImage(index2),
+                  className: "absolute -top-1 -right-1 w-4 h-4 flex items-center justify-center rounded-full bg-red-500 text-white shadow-md opacity-0 group-hover:opacity-100 transition-opacity",
+                  children: /* @__PURE__ */ jsxRuntimeExports.jsx(X, { className: "w-2 h-2" })
+                }
+              )
+            ] }, index2);
+          }) }),
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-1 px-3 py-1", children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsxs(
+              "button",
+              {
+                onClick: () => {
+                  setActiveTool("chat");
+                  setShowToolPanel(false);
+                  setNegativePromptExpanded(false);
+                },
+                className: `flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${activeTool === "chat" ? "bg-primary text-white" : "text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600"}`,
+                children: [
+                  /* @__PURE__ */ jsxRuntimeExports.jsx(Send, { className: "w-3 h-3" }),
+                  /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: "聊天" })
+                ]
+              }
+            ),
+            /* @__PURE__ */ jsxRuntimeExports.jsxs(
+              "button",
+              {
+                onClick: () => {
+                  setActiveTool("image");
+                  setShowToolPanel(true);
+                },
+                className: `flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${activeTool === "image" ? "bg-primary text-white" : "text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600"}`,
+                children: [
+                  /* @__PURE__ */ jsxRuntimeExports.jsx(Image, { className: "w-3 h-3" }),
+                  /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: "图像" })
+                ]
+              }
+            ),
+            /* @__PURE__ */ jsxRuntimeExports.jsxs(
+              "button",
+              {
+                onClick: () => {
+                  setActiveTool("video");
+                  setShowToolPanel(true);
+                },
+                className: `flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all ${activeTool === "video" ? "bg-primary text-white" : "text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600"}`,
+                children: [
+                  /* @__PURE__ */ jsxRuntimeExports.jsx(Video, { className: "w-3 h-3" }),
+                  /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: "视频" })
+                ]
+              }
+            )
+          ] }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx(
+            "textarea",
+            {
+              value: editingContent,
+              onChange: (e) => setEditingContent(e.target.value),
+              onKeyDown: (e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSendMessage(editingContent);
+                }
+              },
+              placeholder: activeTool === "image" ? "输入图像描述..." : activeTool === "video" ? "输入视频描述..." : "输入消息...",
+              disabled: isLoading,
+              className: "w-full px-4 py-3 resize-none focus:outline-none text-sm text-gray-800 dark:text-gray-200 placeholder:text-gray-400 bg-transparent min-h-[48px] max-h-[140px]"
+            }
+          ),
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center justify-between px-3 py-2", children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-1 flex-1 overflow-x-auto", children: [
+              activeTool === "chat" && /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
+                CHAT_PRESETS.map((preset) => /* @__PURE__ */ jsxRuntimeExports.jsx(
+                  "button",
+                  {
+                    onClick: () => handlePresetSelect(preset),
+                    className: `px-2 py-1 rounded-md text-xs transition-all flex-shrink-0 ${activePreset === preset.id ? "bg-primary text-white" : "bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-500"}`,
+                    children: preset.name
+                  },
+                  preset.id
+                )),
+                /* @__PURE__ */ jsxRuntimeExports.jsx(
+                  "button",
+                  {
+                    onClick: handleToggleThinking,
+                    disabled: isLoading,
+                    className: `w-7 h-7 flex items-center justify-center rounded-md transition-all flex-shrink-0 ${chatOptions.enable_thinking ? "bg-primary/10 text-primary" : "text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600"}`,
+                    title: "思考模式",
+                    children: /* @__PURE__ */ jsxRuntimeExports.jsx(WandSparkles, { className: "w-3.5 h-3.5" })
+                  }
+                ),
+                /* @__PURE__ */ jsxRuntimeExports.jsx(
+                  "select",
+                  {
+                    value: chatOptions.max_tokens,
+                    onChange: (e) => {
+                      setChatOptions((prev) => ({ ...prev, max_tokens: parseInt(e.target.value) }));
+                      setActivePreset(null);
+                    },
+                    className: "text-xs px-2 py-1 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:outline-none focus:border-primary flex-shrink-0",
+                    children: MAX_TOKENS_OPTIONS.map((option) => /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: option.value, children: option.label }, option.value))
+                  }
+                )
+              ] }),
+              activeTool === "image" && /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsxs("label", { className: "w-8 h-8 flex items-center justify-center rounded-lg cursor-pointer text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600 transition-all flex-shrink-0", children: [
+                  /* @__PURE__ */ jsxRuntimeExports.jsx(Plus, { className: "w-4 h-4" }),
+                  /* @__PURE__ */ jsxRuntimeExports.jsx(
+                    "input",
+                    {
+                      type: "file",
+                      accept: "image/*",
+                      onChange: handleImageUpload,
+                      className: "hidden",
+                      multiple: true
+                    }
+                  )
+                ] }),
+                /* @__PURE__ */ jsxRuntimeExports.jsx(
+                  "input",
+                  {
+                    type: "text",
+                    value: imageUrlInput,
+                    onChange: (e) => setImageUrlInput(e.target.value),
+                    onKeyDown: (e) => e.key === "Enter" && handleAddImageUrl(),
+                    placeholder: "URL",
+                    className: "text-xs px-2 py-1 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:outline-none focus:border-primary w-20 flex-shrink-0"
+                  }
+                ),
+                /* @__PURE__ */ jsxRuntimeExports.jsx(
+                  "select",
+                  {
+                    value: toolOptions.imageModel,
+                    onChange: (e) => setToolOptions((prev) => ({ ...prev, imageModel: e.target.value })),
+                    className: "text-xs px-2 py-1 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:outline-none focus:border-primary flex-shrink-0",
+                    children: MODEL_OPTIONS.map((option) => /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: option.value, children: option.label }, option.value))
+                  }
+                ),
+                /* @__PURE__ */ jsxRuntimeExports.jsx(
+                  "select",
+                  {
+                    value: toolOptions.imageSize,
+                    onChange: (e) => setToolOptions((prev) => ({ ...prev, imageSize: e.target.value })),
+                    className: "text-xs px-2 py-1 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:outline-none focus:border-primary flex-shrink-0",
+                    children: SIZE_OPTIONS.map((option) => /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: option.value, children: option.label }, option.value))
+                  }
+                ),
+                /* @__PURE__ */ jsxRuntimeExports.jsx(
+                  "input",
+                  {
+                    type: "number",
+                    value: toolOptions.imageSeed,
+                    onChange: (e) => setToolOptions((prev) => ({ ...prev, imageSeed: e.target.value })),
+                    placeholder: "种子",
+                    className: "text-xs px-2 py-1 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:outline-none focus:border-primary w-16 flex-shrink-0"
+                  }
+                )
+              ] }),
+              activeTool === "video" && /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
+                (toolOptions.videoMode === "image2vid" || toolOptions.videoMode === "multi-image" || toolOptions.videoMode === "keyframes") && videoReferenceImages.length < (toolOptions.videoMode === "keyframes" || toolOptions.videoMode === "multi-image" ? 4 : 1) && /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
+                  /* @__PURE__ */ jsxRuntimeExports.jsxs("label", { className: "w-8 h-8 flex items-center justify-center rounded-lg cursor-pointer text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600 transition-all flex-shrink-0", children: [
+                    /* @__PURE__ */ jsxRuntimeExports.jsx(Plus, { className: "w-4 h-4" }),
+                    /* @__PURE__ */ jsxRuntimeExports.jsx(
+                      "input",
+                      {
+                        type: "file",
+                        accept: "image/*",
+                        onChange: handleVideoImageUpload,
+                        className: "hidden",
+                        multiple: true
+                      }
+                    )
+                  ] }),
+                  /* @__PURE__ */ jsxRuntimeExports.jsx(
+                    "input",
+                    {
+                      type: "text",
+                      value: videoImageUrlInput,
+                      onChange: (e) => setVideoImageUrlInput(e.target.value),
+                      onKeyDown: (e) => e.key === "Enter" && handleAddVideoImageUrl(),
+                      placeholder: "URL",
+                      className: "text-xs px-2 py-1 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:outline-none focus:border-primary w-20 flex-shrink-0"
+                    }
+                  )
+                ] }),
+                MODE_OPTIONS.map((option) => {
+                  const Icon2 = option.icon;
+                  const isSelected = toolOptions.videoMode === option.value;
+                  return /* @__PURE__ */ jsxRuntimeExports.jsxs(
+                    "button",
+                    {
+                      onClick: () => {
+                        setToolOptions((prev) => ({ ...prev, videoMode: option.value }));
+                        setVideoReferenceImages([]);
+                      },
+                      className: `flex items-center gap-1 px-2 py-1 rounded-md text-xs transition-all flex-shrink-0 ${isSelected ? "bg-primary text-white" : "bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-500"}`,
+                      children: [
+                        /* @__PURE__ */ jsxRuntimeExports.jsx(Icon2, { className: "w-3 h-3" }),
+                        /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: option.label })
+                      ]
+                    },
+                    option.value
+                  );
+                }),
+                /* @__PURE__ */ jsxRuntimeExports.jsx(
+                  "select",
+                  {
+                    value: toolOptions.videoResolution,
+                    onChange: (e) => setToolOptions((prev) => ({ ...prev, videoResolution: e.target.value })),
+                    className: "text-xs px-2 py-1 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:outline-none focus:border-primary flex-shrink-0",
+                    children: RESOLUTION_OPTIONS.map((option) => /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: option.value, children: option.label }, option.value))
+                  }
+                ),
+                /* @__PURE__ */ jsxRuntimeExports.jsx(
+                  "select",
+                  {
+                    value: toolOptions.videoFrameCount,
+                    onChange: (e) => setToolOptions((prev) => ({ ...prev, videoFrameCount: Number(e.target.value) })),
+                    className: "text-xs px-2 py-1 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:outline-none focus:border-primary flex-shrink-0",
+                    children: FRAME_COUNT_OPTIONS.map((option) => /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: option.value, children: option.label }, option.value))
+                  }
+                ),
+                /* @__PURE__ */ jsxRuntimeExports.jsx(
+                  "select",
+                  {
+                    value: toolOptions.videoFrameRate,
+                    onChange: (e) => setToolOptions((prev) => ({ ...prev, videoFrameRate: Number(e.target.value) })),
+                    className: "text-xs px-2 py-1 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:outline-none focus:border-primary flex-shrink-0",
+                    children: FRAME_RATE_OPTIONS.map((option) => /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: option.value, children: option.label }, option.value))
+                  }
+                ),
+                /* @__PURE__ */ jsxRuntimeExports.jsx(
+                  "input",
+                  {
+                    type: "number",
+                    value: toolOptions.videoSeed,
+                    onChange: (e) => setToolOptions((prev) => ({ ...prev, videoSeed: e.target.value })),
+                    placeholder: "种子",
+                    className: "text-xs px-2 py-1 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:outline-none focus:border-primary w-16 flex-shrink-0"
+                  }
+                )
+              ] })
+            ] }),
+            /* @__PURE__ */ jsxRuntimeExports.jsxs(
+              "button",
+              {
+                onClick: () => handleSendMessage(editingContent),
+                disabled: !editingContent.trim() || isLoading,
+                className: "flex-shrink-0 flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-white bg-primary rounded-lg hover:bg-primary/90 transition-colors",
+                children: [
+                  isLoading ? /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" }) : /* @__PURE__ */ jsxRuntimeExports.jsx(Send, { className: "w-4 h-4" }),
+                  isLoading ? "处理中..." : "发送"
+                ]
+              }
+            )
+          ] })
+        ] }) }) }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx(Modal, { isOpen: showRenameModal, onClose: () => setShowRenameModal(false), children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "bg-white dark:bg-gray-800 rounded-xl p-4 w-[320px]", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx("h3", { className: "text-sm font-semibold text-gray-800 dark:text-gray-200 mb-3", children: "重命名对话" }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx(
+            "input",
+            {
+              type: "text",
+              value: renameTitle,
+              onChange: (e) => setRenameTitle(e.target.value),
+              onKeyDown: (e) => e.key === "Enter" && handleConfirmRename(),
+              className: "w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-1 focus:ring-primary",
+              autoFocus: true
+            }
+          ),
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex justify-end gap-2 mt-3", children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx(
+              "button",
+              {
+                onClick: () => setShowRenameModal(false),
+                className: "px-3 py-1.5 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200",
+                children: "取消"
+              }
+            ),
+            /* @__PURE__ */ jsxRuntimeExports.jsx(
+              "button",
+              {
+                onClick: handleConfirmRename,
+                className: "px-3 py-1.5 text-sm font-medium text-white bg-primary rounded-lg hover:bg-primary/90",
+                children: "确定"
+              }
+            )
+          ] })
+        ] }) }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx(Modal, { isOpen: confirmDelete.isOpen, onClose: () => setConfirmDelete({ isOpen: false, conversationId: null }), children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "bg-white dark:bg-gray-800 rounded-xl p-4 w-[320px]", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx("h3", { className: "text-sm font-semibold text-gray-800 dark:text-gray-200 mb-2", children: "确认删除" }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-sm text-gray-600 dark:text-gray-400 mb-3", children: "确定要删除这个对话吗？此操作无法撤销。" }),
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex justify-end gap-2", children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx(
+              "button",
+              {
+                onClick: () => setConfirmDelete({ isOpen: false, conversationId: null }),
+                className: "px-3 py-1.5 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200",
+                children: "取消"
+              }
+            ),
+            /* @__PURE__ */ jsxRuntimeExports.jsx(
+              "button",
+              {
+                onClick: handleConfirmDeleteConversation,
+                className: "px-3 py-1.5 text-sm font-medium text-white bg-red-500 rounded-lg hover:bg-red-600",
+                children: "删除"
+              }
+            )
+          ] })
+        ] }) })
+      ] }) : /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "flex-1 flex flex-col items-center justify-center", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "text-center", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx(Sparkles, { className: "w-16 h-16 text-primary/50 mx-auto mb-4" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("h2", { className: "text-lg font-semibold text-gray-800 dark:text-gray-200 mb-2", children: "开始对话" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-sm text-gray-500 dark:text-gray-400 mb-6", children: "选择一个角色预设或直接开始聊天" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsxs(
+          "button",
+          {
+            onClick: handleNewConversation,
+            className: "flex items-center gap-2 px-6 py-2.5 text-sm font-medium text-white bg-primary rounded-lg hover:bg-primary/90 transition-colors mx-auto",
+            children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsx(Plus, { size: 16 }),
+              "新对话"
+            ]
+          }
+        )
+      ] }) }) })
     ] });
   }
   const FONT_CATEGORIES = [
@@ -27174,6 +27779,90 @@
       return FONT_STYLES;
     }
     return FONT_STYLES.filter((style2) => style2.category_id === categoryId);
+  }
+  function ImagePreviewModal({ isOpen, onClose, image: image2 }) {
+    const [copied, setCopied] = React$4.useState(false);
+    if (!isOpen || !image2) return null;
+    const handleCopy = async () => {
+      try {
+        await navigator.clipboard.writeText(image2.url);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2e3);
+      } catch {
+        console.error("复制失败");
+      }
+    };
+    const handleDownload = () => {
+      const link2 = document.createElement("a");
+      link2.href = image2.url;
+      link2.download = `agnes-image-${image2.id}.png`;
+      link2.target = "_blank";
+      link2.click();
+    };
+    return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "fixed inset-0 z-50 flex items-center justify-center", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx(
+        "div",
+        {
+          className: "absolute inset-0 bg-black/70 backdrop-blur-sm",
+          onClick: onClose
+        }
+      ),
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "relative bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-hidden", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx("h3", { className: "text-lg font-semibold text-gray-900 dark:text-white", children: "图片预览" }),
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-2", children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx(
+              "button",
+              {
+                onClick: handleCopy,
+                className: "p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors",
+                title: "复制链接",
+                children: copied ? /* @__PURE__ */ jsxRuntimeExports.jsx(Check, { size: 20, className: "text-green-600" }) : /* @__PURE__ */ jsxRuntimeExports.jsx(Copy, { size: 20, className: "text-gray-500" })
+              }
+            ),
+            /* @__PURE__ */ jsxRuntimeExports.jsx(
+              "button",
+              {
+                onClick: handleDownload,
+                className: "p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors",
+                title: "下载图片",
+                children: /* @__PURE__ */ jsxRuntimeExports.jsx(Download, { size: 20, className: "text-gray-500" })
+              }
+            ),
+            /* @__PURE__ */ jsxRuntimeExports.jsx(
+              "button",
+              {
+                onClick: onClose,
+                className: "p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors",
+                children: /* @__PURE__ */ jsxRuntimeExports.jsx(X, { size: 20, className: "text-gray-500" })
+              }
+            )
+          ] })
+        ] }),
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "p-4 flex flex-col items-center", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx(
+            "img",
+            {
+              src: image2.url,
+              alt: "Generated",
+              className: "max-w-full max-h-[70vh] object-contain rounded-lg"
+            }
+          ),
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mt-4 w-full", children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsxs("p", { className: "text-sm text-gray-500 dark:text-gray-400", children: [
+              "提示词: ",
+              image2.prompt
+            ] }),
+            /* @__PURE__ */ jsxRuntimeExports.jsxs("p", { className: "text-xs text-gray-400 dark:text-gray-500 mt-1", children: [
+              "尺寸: ",
+              image2.size,
+              " | 模型: ",
+              image2.model
+            ] })
+          ] })
+        ] })
+      ] })
+    ] });
   }
   function FontGeneratorPage({ onNavigate, userId = "local-user" }) {
     const [textInput, setTextInput] = reactExports.useState("");
@@ -27319,7 +28008,7 @@
                 /* @__PURE__ */ jsxRuntimeExports.jsx(
                   "img",
                   {
-                    src: `./tools/ai-chat/fonts/${style2.thumbnail}`,
+                    src: `./dist/tools/ai-chat/fonts/${style2.thumbnail}`,
                     alt: style2.name,
                     className: "w-full h-full object-cover bg-black",
                     loading: "lazy"
@@ -27764,11 +28453,11 @@
           "button",
           {
             onClick: () => setActiveTab(tab2.id),
-            className: `flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === tab2.id ? "bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400" : "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700"}`,
+            className: `flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === tab2.id ? "bg-primary/10 dark:bg-primary/20 text-primary" : "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700"}`,
             children: [
               /* @__PURE__ */ jsxRuntimeExports.jsx(tab2.icon, { size: 16 }),
               tab2.label,
-              /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: `px-2 py-0.5 rounded-full text-xs ${activeTab === tab2.id ? "bg-purple-600 text-white dark:bg-purple-500" : "bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-400"}`, children: tab2.count })
+              /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: `px-2 py-0.5 rounded-full text-xs ${activeTab === tab2.id ? "bg-primary text-white" : "bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-400"}`, children: tab2.count })
             ]
           },
           tab2.id
@@ -27882,7 +28571,7 @@
           {
             className: "bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4",
             children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-start gap-4", children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "w-24 h-24 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center flex-shrink-0", children: task.video_url ? /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "relative", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Play, { size: 24, className: "text-purple-600" }) }) : /* @__PURE__ */ jsxRuntimeExports.jsx(Video, { size: 24, className: "text-gray-400" }) }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "w-24 h-24 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center flex-shrink-0", children: task.video_url ? /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "relative", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Play, { size: 24, className: "text-primary" }) }) : /* @__PURE__ */ jsxRuntimeExports.jsx(Video, { size: 24, className: "text-gray-400" }) }),
               /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex-1 min-w-0", children: [
                 /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-sm font-medium text-gray-900 dark:text-white mb-1 truncate", children: task.prompt }),
                 /* @__PURE__ */ jsxRuntimeExports.jsxs("p", { className: "text-xs text-gray-500 dark:text-gray-400 mb-2", children: [
@@ -27901,7 +28590,7 @@
                   /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "w-full h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden", children: /* @__PURE__ */ jsxRuntimeExports.jsx(
                     "div",
                     {
-                      className: "h-full bg-purple-600 transition-all",
+                      className: "h-full bg-primary transition-all",
                       style: { width: `${task.progress}%` }
                     }
                   ) })
@@ -27913,7 +28602,7 @@
                       "button",
                       {
                         onClick: () => handleDownload(task.video_url, `video-${task.id}.mp4`),
-                        className: "px-3 py-1.5 text-sm font-medium text-white bg-purple-600 rounded-lg hover:bg-purple-700 transition-colors flex items-center gap-1",
+                        className: "px-3 py-1.5 text-sm font-medium text-white bg-primary rounded-lg hover:bg-primary/90 transition-colors flex items-center gap-1",
                         children: [
                           /* @__PURE__ */ jsxRuntimeExports.jsx(Download, { size: 14 }),
                           "下载"
@@ -28222,7 +28911,7 @@
     format: "markdown",
     icon: "🤖"
   };
-  const defaultPresetIds = ["system-1", "system-2", "system-3", "system-4"];
+  const defaultPresetIds = ["copywriter", "translator", "xiaohongshu", "social-title"];
   function RolePresetsPage({ onNavigate, userId = "local-user" }) {
     const { rolePresets, addRolePreset, updateRolePreset, deleteRolePreset, setActiveRolePreset, activeRolePresetId } = useAgnesStore();
     const [editingId, setEditingId] = reactExports.useState(null);
@@ -28429,7 +29118,7 @@
                       type: "text",
                       value: preset.name,
                       onChange: (e) => updateRolePreset(preset.id, { name: e.target.value }),
-                      className: "w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      className: "w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-1 focus:ring-primary"
                     }
                   )
                 ] }),
@@ -28442,7 +29131,7 @@
                       value: preset.icon || "",
                       onChange: (e) => updateRolePreset(preset.id, { icon: e.target.value }),
                       placeholder: "输入 emoji 图标",
-                      className: "w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      className: "w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-1 focus:ring-primary"
                     }
                   )
                 ] }),
@@ -28454,7 +29143,7 @@
                       value: preset.description,
                       onChange: (e) => updateRolePreset(preset.id, { description: e.target.value }),
                       placeholder: "简要描述这个角色的用途...",
-                      className: "w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none",
+                      className: "w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-1 focus:ring-primary resize-none",
                       rows: 3
                     }
                   )
@@ -28467,7 +29156,7 @@
                       value: preset.system_prompt,
                       onChange: (e) => updateRolePreset(preset.id, { system_prompt: e.target.value }),
                       placeholder: "定义 AI 的角色和行为方式...",
-                      className: "w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none font-mono",
+                      className: "w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-1 focus:ring-primary resize-none font-mono",
                       rows: 10
                     }
                   )
@@ -28499,7 +29188,7 @@
                     value: newPreset.name || "",
                     onChange: (e) => setNewPreset({ ...newPreset, name: e.target.value }),
                     placeholder: "例如：文案助手",
-                    className: "w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className: "w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-1 focus:ring-primary"
                   }
                 )
               ] }),
@@ -28512,7 +29201,7 @@
                     value: newPreset.icon || "",
                     onChange: (e) => setNewPreset({ ...newPreset, icon: e.target.value }),
                     placeholder: "输入 emoji 图标",
-                    className: "w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className: "w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-1 focus:ring-primary"
                   }
                 )
               ] }),
@@ -28524,7 +29213,7 @@
                     value: newPreset.description || "",
                     onChange: (e) => setNewPreset({ ...newPreset, description: e.target.value }),
                     placeholder: "简要描述这个角色的用途...",
-                    className: "w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none",
+                    className: "w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-1 focus:ring-primary resize-none",
                     rows: 3
                   }
                 )
@@ -28537,7 +29226,7 @@
                     value: newPreset.system_prompt || "",
                     onChange: (e) => setNewPreset({ ...newPreset, system_prompt: e.target.value }),
                     placeholder: "定义 AI 的角色和行为方式...",
-                    className: "w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none font-mono",
+                    className: "w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-1 focus:ring-primary resize-none font-mono",
                     rows: 10
                   }
                 )
@@ -28551,7 +29240,7 @@
   function App() {
     const [currentPage, setCurrentPage] = reactExports.useState("chat");
     const [userId, setUserId] = reactExports.useState("local-user");
-    const { theme } = useAgnesStore();
+    const { theme, loadUserData } = useAgnesStore();
     reactExports.useEffect(() => {
       document.documentElement.classList.toggle("dark", theme === "dark");
     }, [theme]);
@@ -28570,6 +29259,7 @@
         const userInfo = window.__PLUGIN_DATA__.user;
         if (userInfo && userInfo.id) {
           setUserId(userInfo.id);
+          loadUserData(userInfo.id);
         }
       }
     }, []);
@@ -28616,20 +29306,22 @@
     });
   }
   function renderStandalone() {
-    const root2 = document.getElementById("root");
+    const root2 = document.getElementById("app");
     if (!root2) {
-      console.error("Root element not found");
+      console.error("App element not found");
       return;
     }
-    if (ReactDOM.createRoot) {
-      ReactDOM.createRoot(root2).render(/* @__PURE__ */ jsxRuntimeExports.jsx(App, {}));
-    } else {
-      ReactDOM.render(/* @__PURE__ */ jsxRuntimeExports.jsx(App, {}), root2);
-    }
+    clientExports.createRoot(root2).render(/* @__PURE__ */ jsxRuntimeExports.jsx(App, {}));
   }
   const pluginData = window.__PLUGIN_DATA__;
   if (pluginData) {
     renderStandalone();
   }
   window.registerPlugin = registerPlugin;
+  document.addEventListener("DOMContentLoaded", () => {
+    const root2 = document.getElementById("app");
+    if (root2 && !root2.firstChild) {
+      renderStandalone();
+    }
+  });
 })();

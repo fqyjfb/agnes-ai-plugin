@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import ReactDOM from 'react-dom/client';
+import * as ReactDOM from 'react-dom/client';
 import { Wand2, Settings } from 'lucide-react';
 import { AIChatPage } from './pages/AIChatPage';
 import { FontGeneratorPage } from './pages/FontGeneratorPage';
@@ -8,13 +8,23 @@ import { SettingsPage } from './pages/SettingsPage';
 import { RolePresetsPage } from './pages/RolePresetsPage';
 import { useAgnesStore } from './store/agnesStore';
 
+declare global {
+  interface Window {
+    __PLUGIN_DATA__?: {
+      user?: {
+        id?: string;
+      };
+    };
+  }
+}
+
 type PageType = 'chat' | 'font' | 'history' | 'settings' | 'presets';
 
 function App() {
   const [currentPage, setCurrentPage] = useState<PageType>('chat');
   const [userId, setUserId] = useState('local-user');
 
-  const { theme } = useAgnesStore();
+  const { theme, loadUserData } = useAgnesStore();
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', theme === 'dark');
@@ -37,6 +47,7 @@ function App() {
       const userInfo = window.__PLUGIN_DATA__.user;
       if (userInfo && userInfo.id) {
         setUserId(userInfo.id);
+        loadUserData(userInfo.id);
       }
     }
   }, []);
@@ -93,17 +104,13 @@ function registerPlugin(toolboxApi: any) {
 }
 
 function renderStandalone() {
-  const root = document.getElementById('root');
+  const root = document.getElementById('app');
   if (!root) {
-    console.error('Root element not found');
+    console.error('App element not found');
     return;
   }
 
-  if (ReactDOM.createRoot) {
-    ReactDOM.createRoot(root).render(<App />);
-  } else {
-    ReactDOM.render(<App />, root);
-  }
+  ReactDOM.createRoot(root).render(<App />);
 }
 
 const pluginData = (window as any).__PLUGIN_DATA__;
@@ -112,3 +119,10 @@ if (pluginData) {
 }
 
 (window as any).registerPlugin = registerPlugin;
+
+document.addEventListener('DOMContentLoaded', () => {
+  const root = document.getElementById('app');
+  if (root && !root.firstChild) {
+    renderStandalone();
+  }
+});

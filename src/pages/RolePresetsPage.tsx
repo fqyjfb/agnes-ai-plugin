@@ -21,7 +21,7 @@ const defaultNewPreset: Partial<RolePreset> = {
   icon: '🤖',
 };
 
-const defaultPresetIds = ['system-1', 'system-2', 'system-3', 'system-4'];
+const defaultPresetIds = ['copywriter', 'translator', 'xiaohongshu', 'social-title'];
 
 export function RolePresetsPage({ onNavigate, userId = 'local-user' }: RolePresetsPageProps) {
   const { rolePresets, addRolePreset, updateRolePreset, deleteRolePreset, setActiveRolePreset, activeRolePresetId } = useAgnesStore();
@@ -260,7 +260,7 @@ export function RolePresetsPage({ onNavigate, userId = 'local-user' }: RolePrese
                         type="text"
                         value={preset.name}
                         onChange={(e) => updateRolePreset(preset.id, { name: e.target.value })}
-                        className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-1 focus:ring-primary"
                       />
                     </div>
 
@@ -271,7 +271,7 @@ export function RolePresetsPage({ onNavigate, userId = 'local-user' }: RolePrese
                         value={preset.icon || ''}
                         onChange={(e) => updateRolePreset(preset.id, { icon: e.target.value })}
                         placeholder="输入 emoji 图标"
-                        className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-1 focus:ring-primary"
                       />
                     </div>
 
@@ -281,7 +281,7 @@ export function RolePresetsPage({ onNavigate, userId = 'local-user' }: RolePrese
                         value={preset.description}
                         onChange={(e) => updateRolePreset(preset.id, { description: e.target.value })}
                         placeholder="简要描述这个角色的用途..."
-                        className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none"
+                        className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-1 focus:ring-primary resize-none"
                         rows={3}
                       />
                     </div>
@@ -292,7 +292,7 @@ export function RolePresetsPage({ onNavigate, userId = 'local-user' }: RolePrese
                         value={preset.system_prompt}
                         onChange={(e) => updateRolePreset(preset.id, { system_prompt: e.target.value })}
                         placeholder="定义 AI 的角色和行为方式..."
-                        className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none font-mono"
+                        className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-1 focus:ring-primary resize-none font-mono"
                         rows={10}
                       />
                     </div>
@@ -323,7 +323,7 @@ export function RolePresetsPage({ onNavigate, userId = 'local-user' }: RolePrese
                     value={newPreset.name || ''}
                     onChange={(e) => setNewPreset({ ...newPreset, name: e.target.value })}
                     placeholder="例如：文案助手"
-                    className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-1 focus:ring-primary"
                   />
                 </div>
 
@@ -334,7 +334,7 @@ export function RolePresetsPage({ onNavigate, userId = 'local-user' }: RolePrese
                     value={newPreset.icon || ''}
                     onChange={(e) => setNewPreset({ ...newPreset, icon: e.target.value })}
                     placeholder="输入 emoji 图标"
-                    className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-1 focus:ring-primary"
                   />
                 </div>
 
@@ -344,7 +344,7 @@ export function RolePresetsPage({ onNavigate, userId = 'local-user' }: RolePrese
                     value={newPreset.description || ''}
                     onChange={(e) => setNewPreset({ ...newPreset, description: e.target.value })}
                     placeholder="简要描述这个角色的用途..."
-                    className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none"
+                    className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-1 focus:ring-primary resize-none"
                     rows={3}
                   />
                 </div>
@@ -355,7 +355,7 @@ export function RolePresetsPage({ onNavigate, userId = 'local-user' }: RolePrese
                     value={newPreset.system_prompt || ''}
                     onChange={(e) => setNewPreset({ ...newPreset, system_prompt: e.target.value })}
                     placeholder="定义 AI 的角色和行为方式..."
-                    className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-1 focus:ring-blue-500 resize-none font-mono"
+                    className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-1 focus:ring-primary resize-none font-mono"
                     rows={10}
                   />
                 </div>

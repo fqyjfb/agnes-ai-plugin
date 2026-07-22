@@ -1,8 +1,9 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
 import { Conversation, Message, VideoTask, FontGenerationTask, RolePreset, ImageResult } from '../types/agnes';
+import { agnesLocalStorage } from '../services/agnesLocalStorage';
 
 interface AgnesState {
+  userId: string;
   conversations: Conversation[];
   activeConversationId: string | null;
   rolePresets: RolePreset[];
@@ -22,7 +23,13 @@ interface AgnesState {
   theme: 'light' | 'dark';
   apiBaseUrl: string;
 
+  setUserId: (userId: string) => void;
+  loadUserData: (userId: string) => void;
+  saveUserData: () => void;
+
   addMessage: (conversationId: string, message: Message) => void;
+  updateMessage: (conversationId: string, messageId: string, content: string, thinking?: string) => void;
+  deleteMessage: (conversationId: string, messageId: string) => void;
   createConversation: (title: string, rolePresetId?: string | null) => Conversation;
   setActiveConversation: (conversationId: string | null) => void;
   deleteConversation: (conversationId: string) => void;
@@ -54,265 +61,350 @@ interface AgnesState {
 
 const defaultRolePresets: RolePreset[] = [
   {
-    id: 'system-1',
-    preset_id: 'system-default',
-    name: '默认',
-    description: '通用对话助手',
-    system_prompt: '你是一个通用AI助手，帮助用户解答问题、提供建议。',
-    icon: 'MessageSquare',
-    is_default: true,
+    id: 'copywriter',
+    user_id: undefined,
+    preset_id: 'copywriter',
+    name: '文案助手',
+    description: '专业的文案创作助手，帮助您撰写高质量的营销文案、产品描述和广告文案',
+    system_prompt: '您是一名专业的文案策划师，擅长撰写各种类型的营销文案。请根据用户的需求，创作出吸引人、有说服力的文案内容。',
+    icon: '✍️',
     is_system: true,
+    is_default: false,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
   },
   {
-    id: 'system-2',
-    preset_id: 'system-creative',
-    name: '创意伙伴',
-    description: '激发创意灵感',
-    system_prompt: '你是一个创意伙伴，善于激发灵感、提供新颖想法。',
-    icon: 'Lightbulb',
-    is_default: false,
+    id: 'translator',
+    user_id: undefined,
+    preset_id: 'translator',
+    name: '翻译助手',
+    description: '多语言翻译专家，支持多种语言互译，准确传达原文含义',
+    system_prompt: '您是一名专业的翻译专家，精通多种语言。请准确翻译用户提供的内容，保持原文含义不变，并确保译文流畅自然。',
+    icon: '🌍',
     is_system: true,
+    is_default: false,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
   },
   {
-    id: 'system-3',
-    preset_id: 'system-writer',
-    name: '文案专家',
-    description: '专业文案写作',
-    system_prompt: '你是一个专业文案专家，擅长撰写各类文案内容。',
-    icon: 'FileText',
-    is_default: false,
+    id: 'xiaohongshu',
+    user_id: undefined,
+    preset_id: 'xiaohongshu',
+    name: '小红书助手',
+    description: '小红书风格内容创作专家，帮助您撰写吸睛的种草笔记',
+    system_prompt: '您是一名小红书内容创作专家，精通小红书平台的内容风格和热门话题。请根据用户提供的产品或主题，创作出符合小红书风格的种草笔记。',
+    icon: '📕',
     is_system: true,
+    is_default: false,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
   },
   {
-    id: 'system-4',
-    preset_id: 'system-coder',
-    name: '代码助手',
-    description: '编程问题解答',
-    system_prompt: '你是一个编程专家，帮助用户解决编程问题、提供代码建议。',
-    icon: 'Code',
-    is_default: false,
+    id: 'social-title',
+    user_id: undefined,
+    preset_id: 'social-title',
+    name: '社媒标题助手',
+    description: '社交媒体标题创作专家，帮您打造高点击率的标题',
+    system_prompt: '您是一名社交媒体运营专家，擅长创作吸引人的标题。请根据用户提供的内容主题，生成多个吸引人的社交媒体标题选项。',
+    icon: '📣',
     is_system: true,
+    is_default: false,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
   },
 ];
 
-export const useAgnesStore = create<AgnesState>()(
-  persist(
-    (set, get) => ({
-      conversations: [],
-      activeConversationId: null,
-      rolePresets: defaultRolePresets,
-      activeRolePresetId: null,
+export const useAgnesStore = create<AgnesState>()((set, get) => ({
+  userId: 'local-user',
+  conversations: [],
+  activeConversationId: null,
+  rolePresets: defaultRolePresets,
+  activeRolePresetId: null,
+  imageGeneration: {
+    isGenerating: false,
+    result: null,
+    history: [],
+  },
+  videoGeneration: {
+    tasks: [],
+  },
+  fontGeneration: {
+    tasks: [],
+  },
+  apiKey: '',
+  theme: 'light',
+  apiBaseUrl: 'https://apihub.agnes-ai.com',
+
+  setUserId: (userId) => {
+    set({ userId });
+  },
+
+  loadUserData: (userId) => {
+    const localConversations = agnesLocalStorage.getConversations(userId);
+    const localImageHistory = agnesLocalStorage.getImageHistory(userId);
+    const localVideoTasks = agnesLocalStorage.getVideoTasks(userId);
+    const localFontTasks = agnesLocalStorage.getFontTasks(userId);
+    const localRolePresets = agnesLocalStorage.getRolePresets(userId);
+    const localApiKey = agnesLocalStorage.getApiKey(userId);
+    const localApiBaseUrl = agnesLocalStorage.getApiBaseUrl(userId);
+    const localTheme = agnesLocalStorage.getTheme(userId) as 'light' | 'dark';
+
+    const mergedPresets = [
+      ...defaultRolePresets,
+      ...localRolePresets.filter(p => !defaultRolePresets.some(dp => dp.id === p.id)),
+    ];
+
+    set({
+      userId,
+      conversations: localConversations,
+      rolePresets: mergedPresets,
       imageGeneration: {
         isGenerating: false,
         result: null,
-        history: [],
+        history: localImageHistory,
       },
       videoGeneration: {
-        tasks: [],
+        tasks: localVideoTasks,
       },
       fontGeneration: {
-        tasks: [],
+        tasks: localFontTasks,
       },
-      apiKey: '',
-      theme: 'light',
-      apiBaseUrl: 'https://apihub.agnes-ai.com',
+      apiKey: localApiKey,
+      apiBaseUrl: localApiBaseUrl,
+      theme: localTheme,
+    });
+  },
 
-      addMessage: (conversationId, message) => {
-        set((state) => ({
-          conversations: state.conversations.map((conv) =>
-            conv.id === conversationId
-              ? { ...conv, messages: [...conv.messages, message], updated_at: new Date().toISOString() }
-              : conv
-          ),
-        }));
-      },
+  saveUserData: () => {
+    const state = get();
+    agnesLocalStorage.saveConversations(state.userId, state.conversations);
+    agnesLocalStorage.saveImageHistory(state.userId, state.imageGeneration.history);
+    agnesLocalStorage.saveVideoTasks(state.userId, state.videoGeneration.tasks);
+    agnesLocalStorage.saveFontTasks(state.userId, state.fontGeneration.tasks);
+    const userPresets = state.rolePresets.filter(p => !p.is_system);
+    agnesLocalStorage.saveRolePresets(state.userId, userPresets);
+    agnesLocalStorage.saveApiKey(state.userId, state.apiKey);
+    agnesLocalStorage.saveApiBaseUrl(state.userId, state.apiBaseUrl);
+    agnesLocalStorage.saveTheme(state.userId, state.theme);
+  },
 
-      updateMessage: (conversationId, messageId, content, thinking) => {
-        set((state) => ({
-          conversations: state.conversations.map((conv) =>
-            conv.id === conversationId
-              ? {
-                  ...conv,
-                  messages: conv.messages.map((msg) =>
-                    msg.id === messageId
-                      ? { ...msg, content, thinking, updated_at: new Date().toISOString() }
-                      : msg
-                  ),
-                  updated_at: new Date().toISOString(),
-                }
-              : conv
-          ),
-        }));
-      },
+  addMessage: (conversationId, message) => {
+    set((state) => ({
+      conversations: state.conversations.map((conv) =>
+        conv.id === conversationId
+          ? { ...conv, messages: [...conv.messages, message], updated_at: new Date().toISOString() }
+          : conv
+      ),
+    }));
+    get().saveUserData();
+  },
 
-      createConversation: (title, rolePresetId = null) => {
-        const newConversation: Conversation = {
-          id: `conv-${Date.now()}`,
-          user_id: 'local-user',
-          title,
-          role_preset_id: rolePresetId,
-          messages: [],
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        };
-        set((state) => ({
-          conversations: [newConversation, ...state.conversations],
-          activeConversationId: newConversation.id,
-        }));
-        return newConversation;
-      },
+  updateMessage: (conversationId, messageId, content, thinking) => {
+    set((state) => ({
+      conversations: state.conversations.map((conv) =>
+        conv.id === conversationId
+          ? {
+              ...conv,
+              messages: conv.messages.map((msg) =>
+                msg.id === messageId
+                  ? { ...msg, content, thinking, updated_at: new Date().toISOString() }
+                  : msg
+              ),
+              updated_at: new Date().toISOString(),
+            }
+          : conv
+      ),
+    }));
+    get().saveUserData();
+  },
 
-      setActiveConversation: (conversationId) => {
-        set({ activeConversationId: conversationId });
-      },
+  deleteMessage: (conversationId, messageId) => {
+    set((state) => ({
+      conversations: state.conversations.map((conv) =>
+        conv.id === conversationId
+          ? { ...conv, messages: conv.messages.filter((msg) => msg.id !== messageId), updated_at: new Date().toISOString() }
+          : conv
+      ),
+    }));
+    get().saveUserData();
+  },
 
-      deleteConversation: (conversationId) => {
-        set((state) => ({
-          conversations: state.conversations.filter((conv) => conv.id !== conversationId),
-          activeConversationId:
-            state.activeConversationId === conversationId
-              ? state.conversations.find((conv) => conv.id !== conversationId)?.id || null
-              : state.activeConversationId,
-        }));
-      },
+  createConversation: (title, rolePresetId = null) => {
+    const state = get();
+    const newConversation: Conversation = {
+      id: `conv-${Date.now()}`,
+      user_id: state.userId,
+      title,
+      role_preset_id: rolePresetId,
+      messages: [],
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    set({
+      conversations: [newConversation, ...state.conversations],
+      activeConversationId: newConversation.id,
+    });
+    get().saveUserData();
+    return newConversation;
+  },
 
-      updateConversationTitle: (conversationId, title) => {
-        set((state) => ({
-          conversations: state.conversations.map((conv) =>
-            conv.id === conversationId ? { ...conv, title, updated_at: new Date().toISOString() } : conv
-          ),
-        }));
-      },
+  setActiveConversation: (conversationId) => {
+    set({ activeConversationId: conversationId });
+  },
 
-      addRolePreset: (preset) => {
-        const newPreset: RolePreset = {
-          ...preset,
-          id: `preset-${Date.now()}`,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        };
-        set((state) => ({ rolePresets: [...state.rolePresets, newPreset] }));
-      },
+  deleteConversation: (conversationId) => {
+    set((state) => ({
+      conversations: state.conversations.filter((conv) => conv.id !== conversationId),
+      activeConversationId:
+        state.activeConversationId === conversationId
+          ? state.conversations.find((conv) => conv.id !== conversationId)?.id || null
+          : state.activeConversationId,
+    }));
+    get().saveUserData();
+  },
 
-      updateRolePreset: (presetId, updates) => {
-        set((state) => ({
-          rolePresets: state.rolePresets.map((preset) =>
-            preset.id === presetId ? { ...preset, ...updates, updated_at: new Date().toISOString() } : preset
-          ),
-        }));
-      },
+  updateConversationTitle: (conversationId, title) => {
+    set((state) => ({
+      conversations: state.conversations.map((conv) =>
+        conv.id === conversationId ? { ...conv, title, updated_at: new Date().toISOString() } : conv
+      ),
+    }));
+    get().saveUserData();
+  },
 
-      deleteRolePreset: (presetId) => {
-        set((state) => ({
-          rolePresets: state.rolePresets.filter((preset) => preset.id !== presetId),
-          activeRolePresetId: state.activeRolePresetId === presetId ? null : state.activeRolePresetId,
-        }));
-      },
+  addRolePreset: (preset) => {
+    const state = get();
+    const newPreset: RolePreset = {
+      ...preset,
+      id: `preset-${Date.now()}`,
+      user_id: state.userId,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    set((state) => ({ rolePresets: [...state.rolePresets, newPreset] }));
+    get().saveUserData();
+  },
 
-      setActiveRolePreset: (presetId) => {
-        set({ activeRolePresetId: presetId });
-      },
+  updateRolePreset: (presetId, updates) => {
+    set((state) => ({
+      rolePresets: state.rolePresets.map((preset) =>
+        preset.id === presetId ? { ...preset, ...updates, updated_at: new Date().toISOString() } : preset
+      ),
+    }));
+    get().saveUserData();
+  },
 
-      setImageGenerating: (isGenerating) => {
-        set((state) => ({ imageGeneration: { ...state.imageGeneration, isGenerating } }));
-      },
+  deleteRolePreset: (presetId) => {
+    set((state) => ({
+      rolePresets: state.rolePresets.filter((preset) => preset.id !== presetId),
+      activeRolePresetId: state.activeRolePresetId === presetId ? null : state.activeRolePresetId,
+    }));
+    get().saveUserData();
+  },
 
-      setImageResult: (result) => {
-        set((state) => ({ imageGeneration: { ...state.imageGeneration, result } }));
-      },
+  setActiveRolePreset: (presetId) => {
+    set({ activeRolePresetId: presetId });
+  },
 
-      addImageToHistory: (result) => {
-        set((state) => ({
-          imageGeneration: {
-            ...state.imageGeneration,
-            history: [result, ...state.imageGeneration.history],
-          },
-        }));
-      },
+  setImageGenerating: (isGenerating) => {
+    set((state) => ({ imageGeneration: { ...state.imageGeneration, isGenerating } }));
+  },
 
-      removeImageFromHistory: (id) => {
-        set((state) => ({
-          imageGeneration: {
-            ...state.imageGeneration,
-            history: state.imageGeneration.history.filter((img) => img.id !== id),
-          },
-        }));
-      },
+  setImageResult: (result) => {
+    set((state) => ({ imageGeneration: { ...state.imageGeneration, result } }));
+  },
 
-      clearImageHistory: () => {
-        set((state) => ({ imageGeneration: { ...state.imageGeneration, history: [] } }));
+  addImageToHistory: (result) => {
+    set((state) => ({
+      imageGeneration: {
+        ...state.imageGeneration,
+        history: [result, ...state.imageGeneration.history],
       },
+    }));
+    get().saveUserData();
+  },
 
-      addVideoTask: (task) => {
-        set((state) => ({ videoGeneration: { ...state.videoGeneration, tasks: [task, ...state.videoGeneration.tasks] } }));
+  removeImageFromHistory: (id) => {
+    set((state) => ({
+      imageGeneration: {
+        ...state.imageGeneration,
+        history: state.imageGeneration.history.filter((img) => img.id !== id),
       },
+    }));
+    get().saveUserData();
+  },
 
-      updateVideoTask: (taskId, updates) => {
-        set((state) => ({
-          videoGeneration: {
-            ...state.videoGeneration,
-            tasks: state.videoGeneration.tasks.map((task) =>
-              task.id === taskId ? { ...task, ...updates, updated_at: new Date().toISOString() } : task
-            ),
-          },
-        }));
-      },
+  clearImageHistory: () => {
+    set((state) => ({ imageGeneration: { ...state.imageGeneration, history: [] } }));
+    get().saveUserData();
+  },
 
-      removeVideoTask: (taskId) => {
-        set((state) => ({
-          videoGeneration: {
-            ...state.videoGeneration,
-            tasks: state.videoGeneration.tasks.filter((task) => task.id !== taskId),
-          },
-        }));
-      },
+  addVideoTask: (task) => {
+    set((state) => ({ videoGeneration: { ...state.videoGeneration, tasks: [task, ...state.videoGeneration.tasks] } }));
+    get().saveUserData();
+  },
 
-      addFontTask: (task) => {
-        set((state) => ({ fontGeneration: { ...state.fontGeneration, tasks: [task, ...state.fontGeneration.tasks] } }));
+  updateVideoTask: (taskId, updates) => {
+    set((state) => ({
+      videoGeneration: {
+        ...state.videoGeneration,
+        tasks: state.videoGeneration.tasks.map((task) =>
+          task.id === taskId ? { ...task, ...updates, updated_at: new Date().toISOString() } : task
+        ),
       },
+    }));
+    get().saveUserData();
+  },
 
-      updateFontTask: (taskId, updates) => {
-        set((state) => ({
-          fontGeneration: {
-            ...state.fontGeneration,
-            tasks: state.fontGeneration.tasks.map((task) =>
-              task.id === taskId ? { ...task, ...updates, updated_at: new Date().toISOString() } : task
-            ),
-          },
-        }));
+  removeVideoTask: (taskId) => {
+    set((state) => ({
+      videoGeneration: {
+        ...state.videoGeneration,
+        tasks: state.videoGeneration.tasks.filter((task) => task.id !== taskId),
       },
+    }));
+    get().saveUserData();
+  },
 
-      removeFontTask: (taskId) => {
-        set((state) => ({
-          fontGeneration: {
-            ...state.fontGeneration,
-            tasks: state.fontGeneration.tasks.filter((task) => task.id !== taskId),
-          },
-        }));
-      },
+  addFontTask: (task) => {
+    set((state) => ({ fontGeneration: { ...state.fontGeneration, tasks: [task, ...state.fontGeneration.tasks] } }));
+    get().saveUserData();
+  },
 
-      setApiKey: (apiKey) => {
-        set({ apiKey });
+  updateFontTask: (taskId, updates) => {
+    set((state) => ({
+      fontGeneration: {
+        ...state.fontGeneration,
+        tasks: state.fontGeneration.tasks.map((task) =>
+          task.id === taskId ? { ...task, ...updates, updated_at: new Date().toISOString() } : task
+        ),
       },
+    }));
+    get().saveUserData();
+  },
 
-      setTheme: (theme) => {
-        set({ theme });
+  removeFontTask: (taskId) => {
+    set((state) => ({
+      fontGeneration: {
+        ...state.fontGeneration,
+        tasks: state.fontGeneration.tasks.filter((task) => task.id !== taskId),
       },
+    }));
+    get().saveUserData();
+  },
 
-      setApiBaseUrl: (url) => {
-        set({ apiBaseUrl: url });
-      },
-    }),
-    {
-      name: 'agnes-store',
-    }
-  )
-);
+  setApiKey: (apiKey) => {
+    set({ apiKey });
+    get().saveUserData();
+  },
+
+  setTheme: (theme) => {
+    set({ theme });
+    get().saveUserData();
+  },
+
+  setApiBaseUrl: (url) => {
+    set({ apiBaseUrl: url });
+    get().saveUserData();
+  },
+}));

@@ -184,7 +184,7 @@ export function FontGeneratorPage({ onNavigate, userId = 'local-user' }: FontGen
                   }`}
                 >
                   <img
-                    src={`./tools/ai-chat/fonts/${style.thumbnail}`}
+                    src={`./dist/tools/ai-chat/fonts/${style.thumbnail}`}
                     alt={style.name}
                     className="w-full h-full object-cover bg-black"
                     loading="lazy"

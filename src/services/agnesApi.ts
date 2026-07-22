@@ -63,7 +63,7 @@ export async function generateImage(
   prompt: string,
   model: string = 'agnes-image-2.1-flash',
   size: string = '1024x1024',
-  options: GenerateImageOptions = {}
+  extraBody: Record<string, unknown> = {}
 ): Promise<{ url: string }> {
   const response = await request('/images/generations', {
     method: 'POST',
@@ -73,7 +73,7 @@ export async function generateImage(
       size,
       extra_body: {
         response_format: 'url',
-        ...options,
+        ...extraBody,
       },
     }),
   });
@@ -102,18 +102,31 @@ export async function generateFont(
 
 export async function generateVideo(
   prompt: string,
+  model: string = 'agnes-video-v2.0',
   options: GenerateVideoOptions = {}
-): Promise<{ task_id: string }> {
+): Promise<{ task_id: string; status: string; progress: number; size?: string }> {
   const response = await request('/v1/videos/generations', {
     method: 'POST',
     body: JSON.stringify({
       prompt,
+      model,
       ...options,
     }),
   });
 
   const data = await response.json();
-  return { task_id: data.task_id };
+  return { 
+    task_id: data.task_id,
+    status: data.status || 'queued',
+    progress: data.progress || 0,
+    size: data.size,
+  };
+}
+
+export async function cancelVideoTask(taskId: string): Promise<void> {
+  await request(`/v1/videos/generations/${taskId}/cancel`, {
+    method: 'POST',
+  });
 }
 
 export async function getVideoTaskStatus(taskId: string): Promise<{
