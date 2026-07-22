@@ -104,9 +104,9 @@ function registerPlugin(toolboxApi: any) {
 }
 
 function renderStandalone() {
-  const root = document.getElementById('app');
+  const root = document.getElementById('root');
   if (!root) {
-    console.error('App element not found');
+    console.error('Root element not found');
     return;
   }
 
@@ -121,7 +121,7 @@ if (pluginData) {
 (window as any).registerPlugin = registerPlugin;
 
 document.addEventListener('DOMContentLoaded', () => {
-  const root = document.getElementById('app');
+  const root = document.getElementById('root');
   if (root && !root.firstChild) {
     renderStandalone();
   }

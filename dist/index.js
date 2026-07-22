@@ -29306,9 +29306,9 @@
     });
   }
   function renderStandalone() {
-    const root2 = document.getElementById("app");
+    const root2 = document.getElementById("root");
     if (!root2) {
-      console.error("App element not found");
+      console.error("Root element not found");
       return;
     }
     clientExports.createRoot(root2).render(/* @__PURE__ */ jsxRuntimeExports.jsx(App, {}));
@@ -29319,7 +29319,7 @@
   }
   window.registerPlugin = registerPlugin;
   document.addEventListener("DOMContentLoaded", () => {
-    const root2 = document.getElementById("app");
+    const root2 = document.getElementById("root");
     if (root2 && !root2.firstChild) {
       renderStandalone();
     }
