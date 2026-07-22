@@ -1,410 +1,264 @@
 import { create } from 'zustand';
-import { Conversation, Message, VideoTask, FontGenerationTask, RolePreset, ImageResult } from '../types/agnes';
-import { agnesLocalStorage } from '../services/agnesLocalStorage';
+import { Conversation, Message, RolePreset, ImageGenerationTask, VideoGenerationTask, FontGenerationTask } from '../types/agnes';
+import { AgnesService } from '../services/AgnesService';
 
-interface AgnesState {
-  userId: string;
+interface AgnesStore {
   conversations: Conversation[];
-  activeConversationId: string | null;
+  currentConversationId: string | null;
+  messages: Message[];
   rolePresets: RolePreset[];
-  activeRolePresetId: string | null;
-  imageGeneration: {
-    isGenerating: boolean;
-    result: ImageResult | null;
-    history: ImageResult[];
-  };
-  videoGeneration: {
-    tasks: VideoTask[];
-  };
-  fontGeneration: {
-    tasks: FontGenerationTask[];
-  };
-  apiKey: string;
-  theme: 'light' | 'dark';
-  apiBaseUrl: string;
+  imageTasks: ImageGenerationTask[];
+  videoTasks: VideoGenerationTask[];
+  fontTasks: FontGenerationTask[];
+  isLoading: boolean;
+  activeTab: 'chat' | 'presets' | 'font' | 'history' | 'settings';
 
-  setUserId: (userId: string) => void;
-  loadUserData: (userId: string) => void;
-  saveUserData: () => void;
-
-  addMessage: (conversationId: string, message: Message) => void;
-  updateMessage: (conversationId: string, messageId: string, content: string, thinking?: string) => void;
-  deleteMessage: (conversationId: string, messageId: string) => void;
-  createConversation: (title: string, rolePresetId?: string | null) => Conversation;
-  setActiveConversation: (conversationId: string | null) => void;
-  deleteConversation: (conversationId: string) => void;
-  updateConversationTitle: (conversationId: string, title: string) => void;
-
-  addRolePreset: (preset: Omit<RolePreset, 'id' | 'created_at' | 'updated_at'>) => void;
-  updateRolePreset: (presetId: string, updates: Partial<RolePreset>) => void;
-  deleteRolePreset: (presetId: string) => void;
-  setActiveRolePreset: (presetId: string | null) => void;
-
-  setImageGenerating: (isGenerating: boolean) => void;
-  setImageResult: (result: ImageResult | null) => void;
-  addImageToHistory: (result: ImageResult) => void;
-  removeImageFromHistory: (id: string) => void;
-  clearImageHistory: () => void;
-
-  addVideoTask: (task: VideoTask) => void;
-  updateVideoTask: (taskId: string, updates: Partial<VideoTask>) => void;
-  removeVideoTask: (taskId: string) => void;
-
-  addFontTask: (task: FontGenerationTask) => void;
-  updateFontTask: (taskId: string, updates: Partial<FontGenerationTask>) => void;
-  removeFontTask: (taskId: string) => void;
-
-  setApiKey: (apiKey: string) => void;
-  setTheme: (theme: 'light' | 'dark') => void;
-  setApiBaseUrl: (url: string) => void;
+  setActiveTab: (tab: 'chat' | 'presets' | 'font' | 'history' | 'settings') => void;
+  setLoading: (loading: boolean) => void;
+  loadConversations: () => Promise<void>;
+  loadMessages: (conversationId: string) => Promise<void>;
+  loadRolePresets: () => Promise<void>;
+  loadImageTasks: () => Promise<void>;
+  loadVideoTasks: () => Promise<void>;
+  loadFontTasks: () => Promise<void>;
+  createConversation: (title: string, rolePresetId?: string) => Promise<Conversation>;
+  updateConversation: (id: string, updates: Partial<Conversation>) => Promise<void>;
+  deleteConversation: (id: string) => Promise<void>;
+  setCurrentConversation: (id: string | null) => void;
+  addMessage: (conversationId: string, message: Omit<Message, 'id' | 'created_at'>) => Promise<Message>;
+  updateMessage: (conversationId: string, messageId: string, updates: Partial<Message>) => Promise<void>;
+  addRolePreset: (preset: Omit<RolePreset, 'id' | 'created_at' | 'updated_at'>) => Promise<RolePreset>;
+  updateRolePreset: (id: string, updates: Partial<RolePreset>) => Promise<void>;
+  deleteRolePreset: (id: string) => Promise<void>;
+  addImageTask: (task: Omit<ImageGenerationTask, 'id' | 'created_at' | 'updated_at'>) => Promise<ImageGenerationTask>;
+  updateImageTask: (id: string, updates: Partial<ImageGenerationTask>) => Promise<void>;
+  deleteImageTask: (id: string) => Promise<void>;
+  addVideoTask: (task: Omit<VideoGenerationTask, 'id' | 'created_at' | 'updated_at'>) => Promise<VideoGenerationTask>;
+  updateVideoTask: (id: string, updates: Partial<VideoGenerationTask>) => Promise<void>;
+  deleteVideoTask: (id: string) => Promise<void>;
+  addFontTask: (task: Omit<FontGenerationTask, 'id' | 'created_at' | 'updated_at'>) => Promise<FontGenerationTask>;
+  updateFontTask: (id: string, updates: Partial<FontGenerationTask>) => Promise<void>;
+  deleteFontTask: (id: string) => Promise<void>;
 }
 
-const defaultRolePresets: RolePreset[] = [
-  {
-    id: 'copywriter',
-    user_id: undefined,
-    preset_id: 'copywriter',
-    name: '文案助手',
-    description: '专业的文案创作助手，帮助您撰写高质量的营销文案、产品描述和广告文案',
-    system_prompt: '您是一名专业的文案策划师，擅长撰写各种类型的营销文案。请根据用户的需求，创作出吸引人、有说服力的文案内容。',
-    icon: '✍️',
-    is_system: true,
-    is_default: false,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: 'translator',
-    user_id: undefined,
-    preset_id: 'translator',
-    name: '翻译助手',
-    description: '多语言翻译专家，支持多种语言互译，准确传达原文含义',
-    system_prompt: '您是一名专业的翻译专家，精通多种语言。请准确翻译用户提供的内容，保持原文含义不变，并确保译文流畅自然。',
-    icon: '🌍',
-    is_system: true,
-    is_default: false,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: 'xiaohongshu',
-    user_id: undefined,
-    preset_id: 'xiaohongshu',
-    name: '小红书助手',
-    description: '小红书风格内容创作专家，帮助您撰写吸睛的种草笔记',
-    system_prompt: '您是一名小红书内容创作专家，精通小红书平台的内容风格和热门话题。请根据用户提供的产品或主题，创作出符合小红书风格的种草笔记。',
-    icon: '📕',
-    is_system: true,
-    is_default: false,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: 'social-title',
-    user_id: undefined,
-    preset_id: 'social-title',
-    name: '社媒标题助手',
-    description: '社交媒体标题创作专家，帮您打造高点击率的标题',
-    system_prompt: '您是一名社交媒体运营专家，擅长创作吸引人的标题。请根据用户提供的内容主题，生成多个吸引人的社交媒体标题选项。',
-    icon: '📣',
-    is_system: true,
-    is_default: false,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-];
-
-export const useAgnesStore = create<AgnesState>()((set, get) => ({
-  userId: 'local-user',
+export const useAgnesStore = create<AgnesStore>((set, get) => ({
   conversations: [],
-  activeConversationId: null,
-  rolePresets: defaultRolePresets,
-  activeRolePresetId: null,
-  imageGeneration: {
-    isGenerating: false,
-    result: null,
-    history: [],
-  },
-  videoGeneration: {
-    tasks: [],
-  },
-  fontGeneration: {
-    tasks: [],
-  },
-  apiKey: '',
-  theme: 'light',
-  apiBaseUrl: 'https://apihub.agnes-ai.com',
+  currentConversationId: null,
+  messages: [],
+  rolePresets: [],
+  imageTasks: [],
+  videoTasks: [],
+  fontTasks: [],
+  isLoading: false,
+  activeTab: 'chat',
 
-  setUserId: (userId) => {
-    set({ userId });
-  },
+  setActiveTab: (tab) => set({ activeTab: tab }),
 
-  loadUserData: (userId) => {
-    const localConversations = agnesLocalStorage.getConversations(userId);
-    const localImageHistory = agnesLocalStorage.getImageHistory(userId);
-    const localVideoTasks = agnesLocalStorage.getVideoTasks(userId);
-    const localFontTasks = agnesLocalStorage.getFontTasks(userId);
-    const localRolePresets = agnesLocalStorage.getRolePresets(userId);
-    const localApiKey = agnesLocalStorage.getApiKey(userId);
-    const localApiBaseUrl = agnesLocalStorage.getApiBaseUrl(userId);
-    const localTheme = agnesLocalStorage.getTheme(userId) as 'light' | 'dark';
+  setLoading: (loading) => set({ isLoading: loading }),
 
-    const mergedPresets = [
-      ...defaultRolePresets,
-      ...localRolePresets.filter(p => !defaultRolePresets.some(dp => dp.id === p.id)),
-    ];
-
-    set({
-      userId,
-      conversations: localConversations,
-      rolePresets: mergedPresets,
-      imageGeneration: {
-        isGenerating: false,
-        result: null,
-        history: localImageHistory,
-      },
-      videoGeneration: {
-        tasks: localVideoTasks,
-      },
-      fontGeneration: {
-        tasks: localFontTasks,
-      },
-      apiKey: localApiKey,
-      apiBaseUrl: localApiBaseUrl,
-      theme: localTheme,
-    });
+  loadConversations: async () => {
+    try {
+      const conversations = await AgnesService.getAllConversations();
+      set({ conversations });
+    } catch {
+      set({ conversations: [] });
+    }
   },
 
-  saveUserData: () => {
-    const state = get();
-    agnesLocalStorage.saveConversations(state.userId, state.conversations);
-    agnesLocalStorage.saveImageHistory(state.userId, state.imageGeneration.history);
-    agnesLocalStorage.saveVideoTasks(state.userId, state.videoGeneration.tasks);
-    agnesLocalStorage.saveFontTasks(state.userId, state.fontGeneration.tasks);
-    const userPresets = state.rolePresets.filter(p => !p.is_system);
-    agnesLocalStorage.saveRolePresets(state.userId, userPresets);
-    agnesLocalStorage.saveApiKey(state.userId, state.apiKey);
-    agnesLocalStorage.saveApiBaseUrl(state.userId, state.apiBaseUrl);
-    agnesLocalStorage.saveTheme(state.userId, state.theme);
+  loadMessages: async (conversationId) => {
+    try {
+      const messages = await AgnesService.getAllMessages(conversationId);
+      set({ messages });
+    } catch {
+      set({ messages: [] });
+    }
   },
 
-  addMessage: (conversationId, message) => {
+  loadRolePresets: async () => {
+    try {
+      const presets = await AgnesService.getAllRolePresets();
+      if (presets.length === 0) {
+        const defaultPresets: Omit<RolePreset, 'id' | 'created_at' | 'updated_at'>[] = [
+          { preset_id: 'default-assistant', name: '文案助手', description: '专业文案生成助手', system_prompt: '你是一位专业的文案助手，擅长撰写各类营销文案、产品描述和社交媒体内容。请根据用户需求，生成高质量、吸引人的文案内容。', is_default: true, is_system: true },
+          { preset_id: 'default-translator', name: '翻译助手', description: '精准翻译助手', system_prompt: '你是一位专业翻译助手，精通多种语言。请准确翻译用户提供的内容，保持原意不变，同时确保译文流畅自然。', is_default: true, is_system: true },
+          { preset_id: 'default-programmer', name: '编程助手', description: '代码编程助手', system_prompt: '你是一位资深程序员，精通多种编程语言和技术栈。请帮助用户解决编程问题，提供代码示例和技术建议。', is_default: false, is_system: true },
+          { preset_id: 'default-creative', name: '创意助手', description: '创意灵感助手', system_prompt: '你是一位富有创意的灵感助手，擅长头脑风暴和创意构思。请帮助用户激发创意，提供新颖的想法和解决方案。', is_default: false, is_system: true },
+        ];
+        for (const preset of defaultPresets) {
+          await AgnesService.createRolePreset(preset);
+        }
+        const updatedPresets = await AgnesService.getAllRolePresets();
+        set({ rolePresets: updatedPresets });
+      } else {
+        set({ rolePresets: presets });
+      }
+    } catch {
+      set({ rolePresets: [] });
+    }
+  },
+
+  loadImageTasks: async () => {
+    try {
+      const tasks = await AgnesService.getAllImageTasks();
+      set({ imageTasks: tasks });
+    } catch {
+      set({ imageTasks: [] });
+    }
+  },
+
+  loadVideoTasks: async () => {
+    try {
+      const tasks = await AgnesService.getAllVideoTasks();
+      set({ videoTasks: tasks });
+    } catch {
+      set({ videoTasks: [] });
+    }
+  },
+
+  loadFontTasks: async () => {
+    try {
+      const tasks = await AgnesService.getAllFontTasks();
+      set({ fontTasks: tasks });
+    } catch {
+      set({ fontTasks: [] });
+    }
+  },
+
+  createConversation: async (title, rolePresetId) => {
+    const conversation = await AgnesService.createConversation(title, rolePresetId);
     set((state) => ({
-      conversations: state.conversations.map((conv) =>
-        conv.id === conversationId
-          ? { ...conv, messages: [...conv.messages, message], updated_at: new Date().toISOString() }
-          : conv
-      ),
-    }));
-    get().saveUserData();
-  },
-
-  updateMessage: (conversationId, messageId, content, thinking) => {
-    set((state) => ({
-      conversations: state.conversations.map((conv) =>
-        conv.id === conversationId
-          ? {
-              ...conv,
-              messages: conv.messages.map((msg) =>
-                msg.id === messageId
-                  ? { ...msg, content, thinking, updated_at: new Date().toISOString() }
-                  : msg
-              ),
-              updated_at: new Date().toISOString(),
-            }
-          : conv
-      ),
-    }));
-    get().saveUserData();
-  },
-
-  deleteMessage: (conversationId, messageId) => {
-    set((state) => ({
-      conversations: state.conversations.map((conv) =>
-        conv.id === conversationId
-          ? { ...conv, messages: conv.messages.filter((msg) => msg.id !== messageId), updated_at: new Date().toISOString() }
-          : conv
-      ),
-    }));
-    get().saveUserData();
-  },
-
-  createConversation: (title, rolePresetId = null) => {
-    const state = get();
-    const newConversation: Conversation = {
-      id: `conv-${Date.now()}`,
-      user_id: state.userId,
-      title,
-      role_preset_id: rolePresetId,
+      conversations: [conversation, ...state.conversations],
+      currentConversationId: conversation.id,
       messages: [],
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    };
-    set({
-      conversations: [newConversation, ...state.conversations],
-      activeConversationId: newConversation.id,
-    });
-    get().saveUserData();
-    return newConversation;
-  },
-
-  setActiveConversation: (conversationId) => {
-    set({ activeConversationId: conversationId });
-  },
-
-  deleteConversation: (conversationId) => {
-    set((state) => ({
-      conversations: state.conversations.filter((conv) => conv.id !== conversationId),
-      activeConversationId:
-        state.activeConversationId === conversationId
-          ? state.conversations.find((conv) => conv.id !== conversationId)?.id || null
-          : state.activeConversationId,
     }));
-    get().saveUserData();
+    return conversation;
   },
 
-  updateConversationTitle: (conversationId, title) => {
+  updateConversation: async (id, updates) => {
+    await AgnesService.updateConversation(id, updates);
     set((state) => ({
-      conversations: state.conversations.map((conv) =>
-        conv.id === conversationId ? { ...conv, title, updated_at: new Date().toISOString() } : conv
-      ),
+      conversations: state.conversations.map((c) => (c.id === id ? { ...c, ...updates } : c)),
     }));
-    get().saveUserData();
   },
 
-  addRolePreset: (preset) => {
-    const state = get();
-    const newPreset: RolePreset = {
-      ...preset,
-      id: `preset-${Date.now()}`,
-      user_id: state.userId,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    };
-    set((state) => ({ rolePresets: [...state.rolePresets, newPreset] }));
-    get().saveUserData();
-  },
-
-  updateRolePreset: (presetId, updates) => {
+  deleteConversation: async (id) => {
+    await AgnesService.deleteConversation(id);
     set((state) => ({
-      rolePresets: state.rolePresets.map((preset) =>
-        preset.id === presetId ? { ...preset, ...updates, updated_at: new Date().toISOString() } : preset
-      ),
+      conversations: state.conversations.filter((c) => c.id !== id),
+      currentConversationId: state.currentConversationId === id ? null : state.currentConversationId,
+      messages: state.currentConversationId === id ? [] : state.messages,
     }));
-    get().saveUserData();
   },
 
-  deleteRolePreset: (presetId) => {
+  setCurrentConversation: (id) => {
+    set({ currentConversationId: id });
+    if (id) {
+      get().loadMessages(id);
+    } else {
+      set({ messages: [] });
+    }
+  },
+
+  addMessage: async (conversationId, message) => {
+    const newMessage = await AgnesService.addMessage(conversationId, message);
     set((state) => ({
-      rolePresets: state.rolePresets.filter((preset) => preset.id !== presetId),
-      activeRolePresetId: state.activeRolePresetId === presetId ? null : state.activeRolePresetId,
+      messages: [...state.messages, newMessage],
     }));
-    get().saveUserData();
+    return newMessage;
   },
 
-  setActiveRolePreset: (presetId) => {
-    set({ activeRolePresetId: presetId });
-  },
-
-  setImageGenerating: (isGenerating) => {
-    set((state) => ({ imageGeneration: { ...state.imageGeneration, isGenerating } }));
-  },
-
-  setImageResult: (result) => {
-    set((state) => ({ imageGeneration: { ...state.imageGeneration, result } }));
-  },
-
-  addImageToHistory: (result) => {
+  updateMessage: async (conversationId, messageId, updates) => {
+    await AgnesService.updateMessage(conversationId, messageId, updates);
     set((state) => ({
-      imageGeneration: {
-        ...state.imageGeneration,
-        history: [result, ...state.imageGeneration.history],
-      },
+      messages: state.messages.map((m) => (m.id === messageId ? { ...m, ...updates } : m)),
     }));
-    get().saveUserData();
   },
 
-  removeImageFromHistory: (id) => {
+  addRolePreset: async (preset) => {
+    const newPreset = await AgnesService.createRolePreset(preset);
     set((state) => ({
-      imageGeneration: {
-        ...state.imageGeneration,
-        history: state.imageGeneration.history.filter((img) => img.id !== id),
-      },
+      rolePresets: [...state.rolePresets, newPreset],
     }));
-    get().saveUserData();
+    return newPreset;
   },
 
-  clearImageHistory: () => {
-    set((state) => ({ imageGeneration: { ...state.imageGeneration, history: [] } }));
-    get().saveUserData();
-  },
-
-  addVideoTask: (task) => {
-    set((state) => ({ videoGeneration: { ...state.videoGeneration, tasks: [task, ...state.videoGeneration.tasks] } }));
-    get().saveUserData();
-  },
-
-  updateVideoTask: (taskId, updates) => {
+  updateRolePreset: async (id, updates) => {
+    await AgnesService.updateRolePreset(id, updates);
     set((state) => ({
-      videoGeneration: {
-        ...state.videoGeneration,
-        tasks: state.videoGeneration.tasks.map((task) =>
-          task.id === taskId ? { ...task, ...updates, updated_at: new Date().toISOString() } : task
-        ),
-      },
+      rolePresets: state.rolePresets.map((p) => (p.preset_id === id ? { ...p, ...updates } : p)),
     }));
-    get().saveUserData();
   },
 
-  removeVideoTask: (taskId) => {
+  deleteRolePreset: async (id) => {
+    await AgnesService.deleteRolePreset(id);
     set((state) => ({
-      videoGeneration: {
-        ...state.videoGeneration,
-        tasks: state.videoGeneration.tasks.filter((task) => task.id !== taskId),
-      },
+      rolePresets: state.rolePresets.filter((p) => p.preset_id !== id),
     }));
-    get().saveUserData();
   },
 
-  addFontTask: (task) => {
-    set((state) => ({ fontGeneration: { ...state.fontGeneration, tasks: [task, ...state.fontGeneration.tasks] } }));
-    get().saveUserData();
-  },
-
-  updateFontTask: (taskId, updates) => {
+  addImageTask: async (task) => {
+    const newTask = await AgnesService.createImageTask(task);
     set((state) => ({
-      fontGeneration: {
-        ...state.fontGeneration,
-        tasks: state.fontGeneration.tasks.map((task) =>
-          task.id === taskId ? { ...task, ...updates, updated_at: new Date().toISOString() } : task
-        ),
-      },
+      imageTasks: [newTask, ...state.imageTasks],
     }));
-    get().saveUserData();
+    return newTask;
   },
 
-  removeFontTask: (taskId) => {
+  updateImageTask: async (id, updates) => {
+    await AgnesService.updateImageTask(id, updates);
     set((state) => ({
-      fontGeneration: {
-        ...state.fontGeneration,
-        tasks: state.fontGeneration.tasks.filter((task) => task.id !== taskId),
-      },
+      imageTasks: state.imageTasks.map((t) => (t.id === id ? { ...t, ...updates } : t)),
     }));
-    get().saveUserData();
   },
 
-  setApiKey: (apiKey) => {
-    set({ apiKey });
-    get().saveUserData();
+  deleteImageTask: async (id) => {
+    await AgnesService.deleteImageTask(id);
+    set((state) => ({
+      imageTasks: state.imageTasks.filter((t) => t.id !== id),
+    }));
   },
 
-  setTheme: (theme) => {
-    set({ theme });
-    get().saveUserData();
+  addVideoTask: async (task) => {
+    const newTask = await AgnesService.createVideoTask(task);
+    set((state) => ({
+      videoTasks: [newTask, ...state.videoTasks],
+    }));
+    return newTask;
   },
 
-  setApiBaseUrl: (url) => {
-    set({ apiBaseUrl: url });
-    get().saveUserData();
+  updateVideoTask: async (id, updates) => {
+    await AgnesService.updateVideoTask(id, updates);
+    set((state) => ({
+      videoTasks: state.videoTasks.map((t) => (t.id === id ? { ...t, ...updates } : t)),
+    }));
+  },
+
+  deleteVideoTask: async (id) => {
+    await AgnesService.deleteVideoTask(id);
+    set((state) => ({
+      videoTasks: state.videoTasks.filter((t) => t.id !== id),
+    }));
+  },
+
+  addFontTask: async (task) => {
+    const newTask = await AgnesService.createFontTask(task);
+    set((state) => ({
+      fontTasks: [newTask, ...state.fontTasks],
+    }));
+    return newTask;
+  },
+
+  updateFontTask: async (id, updates) => {
+    await AgnesService.updateFontTask(id, updates);
+    set((state) => ({
+      fontTasks: state.fontTasks.map((t) => (t.id === id ? { ...t, ...updates } : t)),
+    }));
+  },
+
+  deleteFontTask: async (id) => {
+    await AgnesService.deleteFontTask(id);
+    set((state) => ({
+      fontTasks: state.fontTasks.filter((t) => t.id !== id),
+    }));
   },
 }));

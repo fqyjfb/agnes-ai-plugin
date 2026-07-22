@@ -1,128 +1,79 @@
-import React, { useState, useEffect } from 'react';
-import * as ReactDOM from 'react-dom/client';
-import { Wand2, Settings } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { createRoot } from 'react-dom/client';
+import { MessageSquare, Wand2, Clock, Settings, Sparkles } from 'lucide-react';
+import { useAgnesStore } from './store/agnesStore';
 import { AIChatPage } from './pages/AIChatPage';
+import { RolePresetsPage } from './pages/RolePresetsPage';
 import { FontGeneratorPage } from './pages/FontGeneratorPage';
 import { HistoryPage } from './pages/HistoryPage';
 import { SettingsPage } from './pages/SettingsPage';
-import { RolePresetsPage } from './pages/RolePresetsPage';
-import { useAgnesStore } from './store/agnesStore';
+import { getPluginEnv } from './utils/environment';
 
-declare global {
-  interface Window {
-    __PLUGIN_DATA__?: {
-      user?: {
-        id?: string;
-      };
-    };
-  }
-}
-
-type PageType = 'chat' | 'font' | 'history' | 'settings' | 'presets';
-
-function App() {
-  const [currentPage, setCurrentPage] = useState<PageType>('chat');
-  const [userId, setUserId] = useState('local-user');
-
-  const { theme, loadUserData } = useAgnesStore();
+const App: React.FC = () => {
+  const { activeTab, setActiveTab } = useAgnesStore();
+  const [theme, setTheme] = useState<'light' | 'dark'>('light');
 
   useEffect(() => {
-    document.documentElement.classList.toggle('dark', theme === 'dark');
-  }, [theme]);
-
-  useEffect(() => {
-    const handleThemeChange = (event: Event) => {
-      const newTheme = (event as CustomEvent).detail;
-      if (newTheme === 'dark' || newTheme === 'light') {
-        document.documentElement.classList.toggle('dark', newTheme === 'dark');
-      }
-    };
-
-    window.addEventListener('themechange', handleThemeChange);
-    return () => window.removeEventListener('themechange', handleThemeChange);
+    const env = getPluginEnv();
+    setTheme(env.isDark ? 'dark' : 'light');
   }, []);
 
-  useEffect(() => {
-    if (window.__PLUGIN_DATA__) {
-      const userInfo = window.__PLUGIN_DATA__.user;
-      if (userInfo && userInfo.id) {
-        setUserId(userInfo.id);
-        loadUserData(userInfo.id);
-      }
-    }
-  }, []);
-
-  const handleNavigate = (page: string) => {
-    setCurrentPage(page as PageType);
-  };
+  const tabs = [
+    { id: 'chat' as const, label: 'AI 助手', icon: MessageSquare },
+    { id: 'presets' as const, label: '角色预设', icon: Wand2 },
+    { id: 'font' as const, label: '字体生成', icon: Sparkles },
+    { id: 'history' as const, label: '历史记录', icon: Clock },
+    { id: 'settings' as const, label: '设置', icon: Settings },
+  ];
 
   const renderPage = () => {
-    switch (currentPage) {
+    switch (activeTab) {
       case 'chat':
-        return <AIChatPage onNavigate={handleNavigate} userId={userId} />;
-      case 'font':
-        return <FontGeneratorPage onNavigate={handleNavigate} userId={userId} />;
-      case 'history':
-        return <HistoryPage onNavigate={handleNavigate} userId={userId} />;
-      case 'settings':
-        return <SettingsPage onNavigate={handleNavigate} />;
+        return <AIChatPage />;
       case 'presets':
-        return <RolePresetsPage onNavigate={handleNavigate} userId={userId} />;
+        return <RolePresetsPage />;
+      case 'font':
+        return <FontGeneratorPage />;
+      case 'history':
+        return <HistoryPage />;
+      case 'settings':
+        return <SettingsPage />;
       default:
-        return <AIChatPage onNavigate={handleNavigate} userId={userId} />;
+        return <AIChatPage />;
     }
   };
 
   return (
-    <div className="h-screen w-screen overflow-hidden">
-      {renderPage()}
+    <div className={`h-screen w-screen overflow-hidden ${theme === 'dark' ? 'dark' : ''}`}>
+      <div className="flex h-full">
+        <nav className="w-16 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 flex flex-col items-center py-4 gap-2">
+          {tabs.map((tab) => {
+            const Icon = tab.icon;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex flex-col items-center justify-center w-12 h-12 rounded-lg transition-colors ${
+                  activeTab === tab.id
+                    ? 'bg-blue-500 text-white'
+                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
+                }`}
+                title={tab.label}
+              >
+                <Icon size={20} />
+              </button>
+            );
+          })}
+        </nav>
+        <main className="flex-1 h-full overflow-hidden">
+          {renderPage()}
+        </main>
+      </div>
     </div>
   );
+};
+
+const root = document.getElementById('app');
+if (root) {
+  createRoot(root).render(<App />);
 }
-
-function registerPlugin(toolboxApi: any) {
-  const { registerTool, registerSidebarButton, openPluginWindow } = toolboxApi;
-
-  registerTool({
-    id: 'plugin-agnes-ai',
-    name: 'Agnes AI',
-    iconName: 'Wand2',
-    color: '#8b5cf6',
-    textColor: '#ffffff',
-    path: '/tools/plugin-agnes-ai',
-    component: () => <AIChatPage onNavigate={() => {}} />,
-  });
-
-  registerSidebarButton({
-    id: 'agnes-ai-settings',
-    iconName: 'Settings',
-    label: 'Agnes AI 设置',
-    onClick: () => {
-      openPluginWindow('plugin-agnes-ai', { width: 900, height: 600 });
-    },
-  });
-}
-
-function renderStandalone() {
-  const root = document.getElementById('root');
-  if (!root) {
-    console.error('Root element not found');
-    return;
-  }
-
-  ReactDOM.createRoot(root).render(<App />);
-}
-
-const pluginData = (window as any).__PLUGIN_DATA__;
-if (pluginData) {
-  renderStandalone();
-}
-
-(window as any).registerPlugin = registerPlugin;
-
-document.addEventListener('DOMContentLoaded', () => {
-  const root = document.getElementById('root');
-  if (root && !root.firstChild) {
-    renderStandalone();
-  }
-});

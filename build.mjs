@@ -1,8 +1,19 @@
 import { build } from 'vite';
 import { fileURLToPath } from 'url';
 import path from 'path';
+import fs from 'fs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+async function copyFontResources() {
+  const sourceDir = path.resolve(__dirname, 'src', 'assets', 'fonts');
+  const destDir = path.resolve(__dirname, 'dist', 'tools', 'ai-chat', 'fonts');
+  
+  if (fs.existsSync(sourceDir)) {
+    fs.cpSync(sourceDir, destDir, { recursive: true });
+    console.log('Font resources copied to dist/tools/ai-chat/fonts');
+  }
+}
 
 async function runBuild() {
   await build({
@@ -21,6 +32,10 @@ async function runBuild() {
       }
     }
   });
+  
+  await copyFontResources();
+  
   console.log("Build complete: dist/index.js generated.");
 }
+
 runBuild();

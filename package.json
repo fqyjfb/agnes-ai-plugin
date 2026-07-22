@@ -1,7 +1,7 @@
 {
-  "name": "agnes-ai-plugin",
+  "name": "plugin-agnes-ai",
   "version": "1.0.0",
-  "description": "Agnes AI 插件 - AI助手、字体生成器、历史记录",
+  "description": "AI助手聊天、字体生成器、历史记录管理，集成 Agnes AI 服务",
   "main": "dist/index.js",
   "type": "module",
   "scripts": {
@@ -10,10 +10,10 @@
   "dependencies": {
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
-    "lucide-react": "^1.8.0",
+    "lucide-react": "^0.454.0",
     "zustand": "^4.5.0",
     "react-markdown": "^9.0.1",
-    "remark-gfm": "^4.0.0"
+    "remark-gfm": "^4.0.1"
   },
   "devDependencies": {
     "@types/node": "^24.0.0",

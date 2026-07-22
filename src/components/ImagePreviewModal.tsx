@@ -1,88 +1,125 @@
-import React from 'react';
-import { X, Download, Copy, Check } from 'lucide-react';
-import { ImageResult } from '../types/agnes';
+import React, { useEffect, useCallback } from 'react';
+import { X, Download, ZoomIn, ZoomOut, RotateCw } from 'lucide-react';
 
 interface ImagePreviewModalProps {
   isOpen: boolean;
   onClose: () => void;
-  image: ImageResult | null;
+  imageUrl: string;
+  title?: string;
 }
 
-export function ImagePreviewModal({ isOpen, onClose, image }: ImagePreviewModalProps) {
-  const [copied, setCopied] = React.useState(false);
+export const ImagePreviewModal: React.FC<ImagePreviewModalProps> = ({
+  isOpen,
+  onClose,
+  imageUrl,
+  title,
+}) => {
+  const [scale, setScale] = React.useState(1);
+  const [rotation, setRotation] = React.useState(0);
 
-  if (!isOpen || !image) return null;
+  const handleKeyDown = useCallback(
+    (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    },
+    [onClose]
+  );
 
-  const handleCopy = async () => {
+  useEffect(() => {
+    if (isOpen) {
+      document.addEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = 'hidden';
+      setScale(1);
+      setRotation(0);
+    }
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      document.body.style.overflow = '';
+    };
+  }, [isOpen, handleKeyDown]);
+
+  const handleDownload = async () => {
     try {
-      await navigator.clipboard.writeText(image.url);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch {
-      console.error('复制失败');
+      const response = await fetch(imageUrl);
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = title ? `${title}.png` : 'image.png';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Failed to download image:', error);
     }
   };
 
-  const handleDownload = () => {
-    const link = document.createElement('a');
-    link.href = image.url;
-    link.download = `agnes-image-${image.id}.png`;
-    link.target = '_blank';
-    link.click();
-  };
+  if (!isOpen) {
+    return null;
+  }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div 
-        className="absolute inset-0 bg-black/70 backdrop-blur-sm" 
-        onClick={onClose}
-      />
-      <div className="relative bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-hidden">
-        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">图片预览</h3>
+    <div className="fixed inset-0 z-50 flex flex-col">
+      <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative z-10 flex flex-col h-full">
+        <div className="flex items-center justify-between px-4 py-3 bg-gray-900/80">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={onClose}
+              className="p-2 rounded-lg hover:bg-gray-700 transition-colors"
+            >
+              <X size={24} className="text-white" />
+            </button>
+            {title && <span className="text-white text-sm font-medium">{title}</span>}
+          </div>
           <div className="flex items-center gap-2">
             <button
-              onClick={handleCopy}
-              className="p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-              title="复制链接"
+              onClick={() => setScale((s) => Math.max(0.5, s - 0.25))}
+              className="p-2 rounded-lg hover:bg-gray-700 transition-colors"
+              title="缩小"
             >
-              {copied ? (
-                <Check size={20} className="text-green-600" />
-              ) : (
-                <Copy size={20} className="text-gray-500" />
-              )}
+              <ZoomOut size={20} className="text-white" />
+            </button>
+            <span className="text-white text-sm w-16 text-center">{Math.round(scale * 100)}%</span>
+            <button
+              onClick={() => setScale((s) => Math.min(3, s + 0.25))}
+              className="p-2 rounded-lg hover:bg-gray-700 transition-colors"
+              title="放大"
+            >
+              <ZoomIn size={20} className="text-white" />
+            </button>
+            <button
+              onClick={() => setRotation((r) => r + 90)}
+              className="p-2 rounded-lg hover:bg-gray-700 transition-colors"
+              title="旋转"
+            >
+              <RotateCw size={20} className="text-white" />
             </button>
             <button
               onClick={handleDownload}
-              className="p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-              title="下载图片"
+              className="p-2 rounded-lg hover:bg-gray-700 transition-colors"
+              title="下载"
             >
-              <Download size={20} className="text-gray-500" />
-            </button>
-            <button
-              onClick={onClose}
-              className="p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-            >
-              <X size={20} className="text-gray-500" />
+              <Download size={20} className="text-white" />
             </button>
           </div>
         </div>
-        <div className="p-4 flex flex-col items-center">
+        <div className="flex-1 flex items-center justify-center p-8 overflow-hidden">
           <img
-            src={image.url}
-            alt="Generated"
-            className="max-w-full max-h-[70vh] object-contain rounded-lg"
+            src={imageUrl}
+            alt="Preview"
+            style={{
+              transform: `scale(${scale}) rotate(${rotation}deg)`,
+              transition: 'transform 0.2s ease',
+              maxWidth: '100%',
+              maxHeight: '100%',
+              objectFit: 'contain',
+            }}
           />
-          <div className="mt-4 w-full">
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              提示词: {image.prompt}
-            </p>
-            <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
-              尺寸: {image.size} | 模型: {image.model}
-            </p>
-          </div>
         </div>
       </div>
     </div>
   );
-}
+};

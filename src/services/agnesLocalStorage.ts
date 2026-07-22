@@ -1,93 +1,109 @@
-import type { Conversation, ImageResult, VideoTask, FontGenerationTask, RolePreset } from '../types/agnes';
+import { LocalStorageService } from './localStorageService';
+import { getPluginEnv } from '../utils/environment';
+import { AIConversation, AIMessage, RolePreset, ImageGenerationTask, VideoGenerationTask, FontGenerationTask, AgnesConfig } from '../types/agnes';
 
-const STORAGE_KEYS = {
-  CONVERSATIONS: 'agnes_conversations',
-  IMAGE_HISTORY: 'agnes_image_history',
-  VIDEO_TASKS: 'agnes_video_tasks',
-  FONT_TASKS: 'agnes_font_tasks',
-  ROLE_PRESETS: 'agnes_role_presets',
-  API_KEY: 'agnes_api_key',
-  API_BASE_URL: 'agnes_api_base_url',
-  THEME: 'agnes_theme',
-};
+const PREFIX = 'agnes';
 
-function getStorageKey(userId: string, key: string): string {
-  return `${key}_${userId}`;
+function getUserId(): string {
+  return getPluginEnv().userId;
 }
 
-export const agnesLocalStorage = {
-  saveConversations(userId: string, conversations: Conversation[]): void {
-    localStorage.setItem(getStorageKey(userId, STORAGE_KEYS.CONVERSATIONS), JSON.stringify(conversations));
-  },
+function getKey(prefix: string, userId: string): string {
+  return `${prefix}_${userId}`;
+}
 
-  getConversations(userId: string): Conversation[] {
-    const data = localStorage.getItem(getStorageKey(userId, STORAGE_KEYS.CONVERSATIONS));
-    return data ? JSON.parse(data) : [];
-  },
+export class AgnesLocalStorage {
+  static getConversations(): AIConversation[] {
+    const key = getKey(`${PREFIX}_conversations`, getUserId());
+    return LocalStorageService.getItem<AIConversation[]>(key) || [];
+  }
 
-  saveImageHistory(userId: string, history: ImageResult[]): void {
-    localStorage.setItem(getStorageKey(userId, STORAGE_KEYS.IMAGE_HISTORY), JSON.stringify(history));
-  },
+  static setConversations(conversations: AIConversation[]): void {
+    const key = getKey(`${PREFIX}_conversations`, getUserId());
+    LocalStorageService.setItem(key, conversations);
+  }
 
-  getImageHistory(userId: string): ImageResult[] {
-    const data = localStorage.getItem(getStorageKey(userId, STORAGE_KEYS.IMAGE_HISTORY));
-    return data ? JSON.parse(data) : [];
-  },
+  static getMessages(conversationId: string): AIMessage[] {
+    const key = getKey(`${PREFIX}_messages_${conversationId}`, getUserId());
+    return LocalStorageService.getItem<AIMessage[]>(key) || [];
+  }
 
-  saveVideoTasks(userId: string, tasks: VideoTask[]): void {
-    localStorage.setItem(getStorageKey(userId, STORAGE_KEYS.VIDEO_TASKS), JSON.stringify(tasks));
-  },
+  static setMessages(conversationId: string, messages: AIMessage[]): void {
+    const key = getKey(`${PREFIX}_messages_${conversationId}`, getUserId());
+    LocalStorageService.setItem(key, messages);
+  }
 
-  getVideoTasks(userId: string): VideoTask[] {
-    const data = localStorage.getItem(getStorageKey(userId, STORAGE_KEYS.VIDEO_TASKS));
-    return data ? JSON.parse(data) : [];
-  },
+  static getRolePresets(): RolePreset[] {
+    const key = getKey(`${PREFIX}_role_presets`, getUserId());
+    return LocalStorageService.getItem<RolePreset[]>(key) || [];
+  }
 
-  saveFontTasks(userId: string, tasks: FontGenerationTask[]): void {
-    localStorage.setItem(getStorageKey(userId, STORAGE_KEYS.FONT_TASKS), JSON.stringify(tasks));
-  },
+  static setRolePresets(presets: RolePreset[]): void {
+    const key = getKey(`${PREFIX}_role_presets`, getUserId());
+    LocalStorageService.setItem(key, presets);
+  }
 
-  getFontTasks(userId: string): FontGenerationTask[] {
-    const data = localStorage.getItem(getStorageKey(userId, STORAGE_KEYS.FONT_TASKS));
-    return data ? JSON.parse(data) : [];
-  },
+  static getImageTasks(): ImageGenerationTask[] {
+    const key = getKey(`${PREFIX}_image_tasks`, getUserId());
+    return LocalStorageService.getItem<ImageGenerationTask[]>(key) || [];
+  }
 
-  saveRolePresets(userId: string, presets: RolePreset[]): void {
-    localStorage.setItem(getStorageKey(userId, STORAGE_KEYS.ROLE_PRESETS), JSON.stringify(presets));
-  },
+  static setImageTasks(tasks: ImageGenerationTask[]): void {
+    const key = getKey(`${PREFIX}_image_tasks`, getUserId());
+    LocalStorageService.setItem(key, tasks);
+  }
 
-  getRolePresets(userId: string): RolePreset[] {
-    const data = localStorage.getItem(getStorageKey(userId, STORAGE_KEYS.ROLE_PRESETS));
-    return data ? JSON.parse(data) : [];
-  },
+  static getVideoTasks(): VideoGenerationTask[] {
+    const key = getKey(`${PREFIX}_video_tasks`, getUserId());
+    return LocalStorageService.getItem<VideoGenerationTask[]>(key) || [];
+  }
 
-  saveApiKey(userId: string, apiKey: string): void {
-    localStorage.setItem(getStorageKey(userId, STORAGE_KEYS.API_KEY), apiKey);
-  },
+  static setVideoTasks(tasks: VideoGenerationTask[]): void {
+    const key = getKey(`${PREFIX}_video_tasks`, getUserId());
+    LocalStorageService.setItem(key, tasks);
+  }
 
-  getApiKey(userId: string): string {
-    return localStorage.getItem(getStorageKey(userId, STORAGE_KEYS.API_KEY)) || '';
-  },
+  static getFontTasks(): FontGenerationTask[] {
+    const key = getKey(`${PREFIX}_font_tasks`, getUserId());
+    return LocalStorageService.getItem<FontGenerationTask[]>(key) || [];
+  }
 
-  saveApiBaseUrl(userId: string, url: string): void {
-    localStorage.setItem(getStorageKey(userId, STORAGE_KEYS.API_BASE_URL), url);
-  },
+  static setFontTasks(tasks: FontGenerationTask[]): void {
+    const key = getKey(`${PREFIX}_font_tasks`, getUserId());
+    LocalStorageService.setItem(key, tasks);
+  }
 
-  getApiBaseUrl(userId: string): string {
-    return localStorage.getItem(getStorageKey(userId, STORAGE_KEYS.API_BASE_URL)) || 'https://apihub.agnes-ai.com';
-  },
+  static getConfig(): AgnesConfig | null {
+    const key = getKey(`${PREFIX}_config`, getUserId());
+    return LocalStorageService.getItem<AgnesConfig>(key);
+  }
 
-  saveTheme(userId: string, theme: string): void {
-    localStorage.setItem(getStorageKey(userId, STORAGE_KEYS.THEME), theme);
-  },
+  static setConfig(config: AgnesConfig): void {
+    const key = getKey(`${PREFIX}_config`, getUserId());
+    LocalStorageService.setItem(key, config);
+  }
 
-  getTheme(userId: string): string {
-    return localStorage.getItem(getStorageKey(userId, STORAGE_KEYS.THEME)) || 'light';
-  },
+  static getCurrentConversationId(): string | null {
+    const key = getKey(`${PREFIX}_current_conversation`, getUserId());
+    return LocalStorageService.getItem<string>(key);
+  }
 
-  clearUserData(userId: string): void {
-    Object.values(STORAGE_KEYS).forEach(key => {
-      localStorage.removeItem(getStorageKey(userId, key));
-    });
-  },
-};
+  static setCurrentConversationId(id: string): void {
+    const key = getKey(`${PREFIX}_current_conversation`, getUserId());
+    LocalStorageService.setItem(key, id);
+  }
+
+  static clearUserData(): void {
+    const userId = getUserId();
+    const keysToRemove: string[] = [];
+    
+    for (let i = 0; i < LocalStorageService.length; i++) {
+      const key = LocalStorageService.key(i);
+      if (key && key.includes(`_${userId}`)) {
+        keysToRemove.push(key);
+      }
+    }
+    
+    keysToRemove.forEach(key => LocalStorageService.removeItem(key));
+  }
+}

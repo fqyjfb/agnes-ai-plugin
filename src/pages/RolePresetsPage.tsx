@@ -1,369 +1,263 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { Plus, Edit, Trash2, Save, X } from 'lucide-react';
 import { useAgnesStore } from '../store/agnesStore';
-import type { RolePreset } from '../types/agnes';
-import { Plus, Trash2, Edit2, Check, Sparkles, ChevronDown, ChevronUp, ArrowLeft } from 'lucide-react';
 import { Modal } from '../components/Modal';
+import { ConfirmDialog } from '../components/ConfirmDialog';
 
-interface RolePresetsPageProps {
-  onNavigate: (page: string) => void;
-  userId?: string;
-}
+export const RolePresetsPage: React.FC = () => {
+  const {
+    rolePresets,
+    loadRolePresets,
+    addRolePreset,
+    updateRolePreset,
+    deleteRolePreset,
+  } = useAgnesStore();
 
-function generateId(): string {
-  return Date.now().toString(36) + Math.random().toString(36).substr(2);
-}
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [editingPreset, setEditingPreset] = useState<{ preset_id: string; name: string; description: string; system_prompt: string } | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
 
-const defaultNewPreset: Partial<RolePreset> = {
-  name: '',
-  description: '',
-  system_prompt: '',
-  format: 'markdown',
-  icon: '🤖',
-};
+  useEffect(() => {
+    loadRolePresets();
+  }, [loadRolePresets]);
 
-const defaultPresetIds = ['copywriter', 'translator', 'xiaohongshu', 'social-title'];
+  const [formData, setFormData] = useState({
+    name: '',
+    description: '',
+    system_prompt: '',
+  });
 
-export function RolePresetsPage({ onNavigate, userId = 'local-user' }: RolePresetsPageProps) {
-  const { rolePresets, addRolePreset, updateRolePreset, deleteRolePreset, setActiveRolePreset, activeRolePresetId } = useAgnesStore();
+  const handleOpenAddModal = () => {
+    setFormData({ name: '', description: '', system_prompt: '' });
+    setShowAddModal(true);
+  };
 
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [newPreset, setNewPreset] = useState<Partial<RolePreset>>(defaultNewPreset);
-  const [showAddForm, setShowAddForm] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [expandedPresets, setExpandedPresets] = useState<Set<string>>(new Set());
-
-  const toggleExpand = (id: string) => {
-    setExpandedPresets((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) {
-        next.delete(id);
-      } else {
-        next.add(id);
-      }
-      return next;
+  const handleOpenEditModal = (preset: typeof rolePresets[0]) => {
+    setEditingPreset({
+      preset_id: preset.preset_id,
+      name: preset.name,
+      description: preset.description || '',
+      system_prompt: preset.system_prompt,
     });
   };
 
   const handleSavePreset = async () => {
-    if (!newPreset.name?.trim() || !newPreset.system_prompt?.trim()) {
-      alert('请填写角色名称和系统提示词');
-      return;
-    }
+    if (!formData.name.trim() || !formData.system_prompt.trim()) return;
 
-    const presetId = generateId();
-    const preset: RolePreset = {
-      id: presetId,
-      user_id: userId,
-      preset_id: presetId,
-      name: newPreset.name,
-      description: newPreset.description || '',
-      system_prompt: newPreset.system_prompt,
-      format: newPreset.format || 'markdown',
-      icon: newPreset.icon || '🤖',
+    await addRolePreset({
+      preset_id: `custom-${Date.now()}`,
+      name: formData.name,
+      description: formData.description || undefined,
+      system_prompt: formData.system_prompt,
       is_default: false,
       is_system: false,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    };
-
-    addRolePreset(preset);
-    setNewPreset(defaultNewPreset);
-    setShowAddForm(false);
-  };
-
-  const handleUpdatePreset = async (id: string) => {
-    updateRolePreset(id, {
-      updated_at: new Date().toISOString(),
     });
-    setEditingId(null);
-    setShowEditModal(false);
+
+    setShowAddModal(false);
+    setFormData({ name: '', description: '', system_prompt: '' });
   };
 
-  const handleDeletePreset = (id: string) => {
-    if (defaultPresetIds.includes(id)) {
-      alert('默认角色不能删除');
-      return;
-    }
-    if (confirm('确定要删除这个角色预设吗？')) {
-      deleteRolePreset(id);
-    }
+  const handleUpdatePreset = async () => {
+    if (!editingPreset) return;
+    if (!editingPreset.name.trim() || !editingPreset.system_prompt.trim()) return;
+
+    await updateRolePreset(editingPreset.preset_id, {
+      name: editingPreset.name,
+      description: editingPreset.description || undefined,
+      system_prompt: editingPreset.system_prompt,
+    });
+
+    setEditingPreset(null);
   };
 
   return (
-    <div className="h-full flex flex-col bg-gray-50 dark:bg-gray-900">
-      <header className="flex items-center justify-between px-4 py-3 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => onNavigate('chat')}
-            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-          >
-            <ArrowLeft size={20} className="text-gray-600 dark:text-gray-400" />
-          </button>
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-              <Sparkles size={18} className="text-white" />
-            </div>
-            <h1 className="text-lg font-semibold text-gray-900 dark:text-white">角色预设</h1>
+    <div className="h-full bg-white dark:bg-gray-900 p-6 overflow-y-auto">
+      <div className="max-w-4xl mx-auto">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">角色预设</h2>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">管理 AI 助手的角色预设，自定义对话风格</p>
           </div>
-        </div>
-        <div className="flex items-center gap-2">
           <button
-            onClick={() => onNavigate('chat')}
-            className="px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+            onClick={handleOpenAddModal}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
           >
-            AI 助手
-          </button>
-          <button
-            onClick={() => onNavigate('font')}
-            className="px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
-          >
-            字体生成
+            <Plus size={18} />
+            添加预设
           </button>
         </div>
-      </header>
 
-      <main className="flex-1 overflow-y-auto p-6">
-        <div className="max-w-5xl mx-auto">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center">
-                <Sparkles className="w-5 h-5 text-white" />
-              </div>
-              <div>
-                <h1 className="text-xl font-semibold text-gray-800 dark:text-gray-200">角色预设</h1>
-                <p className="text-sm text-gray-500 dark:text-gray-400">管理和自定义 AI 助手的角色设定</p>
-              </div>
-            </div>
-            <button
-              onClick={() => setShowAddForm(true)}
-              className="flex items-center gap-2 px-4 py-2.5 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
+        <div className="grid gap-4">
+          {rolePresets.map((preset) => (
+            <div
+              key={preset.preset_id}
+              className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800"
             >
-              <Plus className="w-4 h-4" />
-              <span className="font-medium text-sm">新建角色</span>
-            </button>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {rolePresets.map((preset) => {
-              const isDefault = defaultPresetIds.includes(preset.id);
-              const isEditing = editingId === preset.id;
-              const isActive = activeRolePresetId === preset.id;
-
-              return (
-                <div
-                  key={preset.id}
-                  className={`relative rounded-xl border bg-white dark:bg-gray-800 p-3 transition-all ${
-                    isActive
-                      ? 'border-primary shadow-md ring-2 ring-primary/20'
-                      : isEditing
-                        ? 'border-primary shadow-md'
-                        : 'border-gray-200 dark:border-gray-700 hover:border-primary/30 hover:shadow-sm'
-                  }`}
-                >
-                  <div className="absolute top-2 right-2 flex items-center gap-1.5">
-                    {!isEditing && (
-                      <>
-                        <button
-                          onClick={() => setActiveRolePreset(isActive ? null : preset.id)}
-                          className={`w-6 h-6 flex items-center justify-center rounded transition-all ${
-                            isActive
-                              ? 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-800/30'
-                              : 'bg-primary/10 text-primary hover:bg-primary/20'
-                          }`}
-                          title={isActive ? '取消启用' : '启用角色'}
-                        >
-                          <Check className="w-3 h-3" />
-                        </button>
-                        <button
-                          onClick={() => {
-                            setEditingId(preset.id);
-                            setShowEditModal(true);
-                          }}
-                          className="w-6 h-6 flex items-center justify-center rounded bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
-                          title="编辑"
-                        >
-                          <Edit2 className="w-3 h-3" />
-                        </button>
-                        {!isDefault && (
-                          <button
-                            onClick={() => handleDeletePreset(preset.id)}
-                            className="w-6 h-6 flex items-center justify-center rounded bg-red-50 dark:bg-red-900/30 text-red-500 hover:bg-red-100 dark:hover:bg-red-800/30 transition-colors"
-                            title="删除"
-                          >
-                            <Trash2 className="w-3 h-3" />
-                          </button>
-                        )}
-                      </>
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-medium text-gray-900 dark:text-white">{preset.name}</h3>
+                    {preset.is_system && (
+                      <span className="px-2 py-0.5 text-xs bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded">
+                        系统预设
+                      </span>
                     )}
                   </div>
-
-                  <div className="flex items-center gap-2 mb-1.5">
-                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-lg flex-shrink-0 ${
-                      isActive
-                        ? 'bg-primary/20 ring-2 ring-primary/30'
-                        : 'bg-gray-100 dark:bg-gray-700'
-                    }`}>
-                      {preset.icon}
-                    </div>
-                    <h3 className="font-semibold text-gray-800 dark:text-gray-200">{preset.name}</h3>
-                  </div>
-                  <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-1 mb-1.5">
-                    {preset.description}
-                  </p>
-                  <div className="p-2 bg-gray-50 dark:bg-gray-700 rounded-md">
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs text-gray-500 dark:text-gray-400">系统提示词</span>
-                      <button
-                        onClick={() => toggleExpand(preset.id)}
-                        className="flex items-center justify-center w-5 h-5 rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
-                        title={expandedPresets.has(preset.id) ? '收起' : '展开'}
-                      >
-                        {expandedPresets.has(preset.id) ? (
-                          <ChevronUp className="w-3 h-3 text-gray-500" />
-                        ) : (
-                          <ChevronDown className="w-3 h-3 text-gray-500" />
-                        )}
-                      </button>
-                    </div>
-                    <p className={`text-xs text-gray-500 dark:text-gray-400 leading-relaxed whitespace-pre-wrap ${
-                      expandedPresets.has(preset.id) ? '' : 'line-clamp-2'
-                    }`}>
-                      {preset.system_prompt}
+                  {preset.description && (
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">{preset.description}</p>
+                  )}
+                  <div className="mt-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                    <p className="text-sm text-gray-600 dark:text-gray-300 font-mono">
+                      {preset.system_prompt.slice(0, 100)}
+                      {preset.system_prompt.length > 100 && '...'}
                     </p>
                   </div>
                 </div>
-              );
-            })}
-          </div>
-
-          {showEditModal && editingId && (
-            <Modal
-              isOpen={showEditModal}
-              onClose={() => {
-                setShowEditModal(false);
-                setEditingId(null);
-              }}
-              title="编辑角色预设"
-              confirmText="保存"
-              cancelText="取消"
-              onConfirm={() => handleUpdatePreset(editingId!)}
-              size="lg"
-            >
-              {(() => {
-                const preset = rolePresets.find(p => p.id === editingId);
-                if (!preset) return null;
-                return (
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">角色名称 *</label>
-                      <input
-                        type="text"
-                        value={preset.name}
-                        onChange={(e) => updateRolePreset(preset.id, { name: e.target.value })}
-                        className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-1 focus:ring-primary"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">角色图标</label>
-                      <input
-                        type="text"
-                        value={preset.icon || ''}
-                        onChange={(e) => updateRolePreset(preset.id, { icon: e.target.value })}
-                        placeholder="输入 emoji 图标"
-                        className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-1 focus:ring-primary"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">角色描述</label>
-                      <textarea
-                        value={preset.description}
-                        onChange={(e) => updateRolePreset(preset.id, { description: e.target.value })}
-                        placeholder="简要描述这个角色的用途..."
-                        className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-1 focus:ring-primary resize-none"
-                        rows={3}
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">系统提示词 *</label>
-                      <textarea
-                        value={preset.system_prompt}
-                        onChange={(e) => updateRolePreset(preset.id, { system_prompt: e.target.value })}
-                        placeholder="定义 AI 的角色和行为方式..."
-                        className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-1 focus:ring-primary resize-none font-mono"
-                        rows={10}
-                      />
-                    </div>
-                  </div>
-                );
-              })()}
-            </Modal>
-          )}
-
-          {showAddForm && (
-            <Modal
-              isOpen={showAddForm}
-              onClose={() => {
-                setShowAddForm(false);
-                setNewPreset(defaultNewPreset);
-              }}
-              title="新建角色预设"
-              confirmText="创建角色"
-              cancelText="取消"
-              onConfirm={handleSavePreset}
-              size="lg"
-            >
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">角色名称 *</label>
-                  <input
-                    type="text"
-                    value={newPreset.name || ''}
-                    onChange={(e) => setNewPreset({ ...newPreset, name: e.target.value })}
-                    placeholder="例如：文案助手"
-                    className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-1 focus:ring-primary"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">角色图标</label>
-                  <input
-                    type="text"
-                    value={newPreset.icon || ''}
-                    onChange={(e) => setNewPreset({ ...newPreset, icon: e.target.value })}
-                    placeholder="输入 emoji 图标"
-                    className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-1 focus:ring-primary"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">角色描述</label>
-                  <textarea
-                    value={newPreset.description || ''}
-                    onChange={(e) => setNewPreset({ ...newPreset, description: e.target.value })}
-                    placeholder="简要描述这个角色的用途..."
-                    className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-1 focus:ring-primary resize-none"
-                    rows={3}
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">系统提示词 *</label>
-                  <textarea
-                    value={newPreset.system_prompt || ''}
-                    onChange={(e) => setNewPreset({ ...newPreset, system_prompt: e.target.value })}
-                    placeholder="定义 AI 的角色和行为方式..."
-                    className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-1 focus:ring-primary resize-none font-mono"
-                    rows={10}
-                  />
+                <div className="flex items-center gap-2 ml-4">
+                  {!preset.is_system && (
+                    <>
+                      <button
+                        onClick={() => handleOpenEditModal(preset)}
+                        className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                        title="编辑"
+                      >
+                        <Edit size={18} className="text-gray-500" />
+                      </button>
+                      <button
+                        onClick={() => setConfirmDelete(preset.preset_id)}
+                        className="p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                        title="删除"
+                      >
+                        <Trash2 size={18} className="text-red-500" />
+                      </button>
+                    </>
+                  )}
                 </div>
               </div>
-            </Modal>
-          )}
+            </div>
+          ))}
         </div>
-      </main>
+
+        {rolePresets.length === 0 && (
+          <div className="text-center py-12">
+            <p className="text-gray-500 dark:text-gray-400">暂无角色预设，点击上方按钮添加</p>
+          </div>
+        )}
+      </div>
+
+      <Modal isOpen={showAddModal} onClose={() => setShowAddModal(false)} title="添加角色预设">
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">预设名称</label>
+            <input
+              type="text"
+              value={formData.name}
+              onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+              placeholder="例如：文案助手"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">描述（可选）</label>
+            <input
+              type="text"
+              value={formData.description}
+              onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+              placeholder="简短描述这个预设的用途"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">系统提示词</label>
+            <textarea
+              value={formData.system_prompt}
+              onChange={(e) => setFormData(prev => ({ ...prev, system_prompt: e.target.value }))}
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+              rows={5}
+              placeholder="定义 AI 的角色和行为..."
+            />
+          </div>
+          <div className="flex justify-end gap-3">
+            <button
+              onClick={() => setShowAddModal(false)}
+              className="px-4 py-2 text-sm text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+            >
+              取消
+            </button>
+            <button
+              onClick={handleSavePreset}
+              disabled={!formData.name.trim() || !formData.system_prompt.trim()}
+              className="px-4 py-2 text-sm text-white bg-blue-500 rounded-lg hover:bg-blue-600 transition-colors disabled:opacity-50"
+            >
+              <Save size={16} className="inline mr-1" />
+              保存
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      {editingPreset && (
+        <Modal isOpen={true} onClose={() => setEditingPreset(null)} title="编辑角色预设">
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">预设名称</label>
+              <input
+                type="text"
+                value={editingPreset.name}
+                onChange={(e) => setEditingPreset(prev => prev ? { ...prev, name: e.target.value } : null)}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">描述（可选）</label>
+              <input
+                type="text"
+                value={editingPreset.description}
+                onChange={(e) => setEditingPreset(prev => prev ? { ...prev, description: e.target.value } : null)}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">系统提示词</label>
+              <textarea
+                value={editingPreset.system_prompt}
+                onChange={(e) => setEditingPreset(prev => prev ? { ...prev, system_prompt: e.target.value } : null)}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                rows={5}
+              />
+            </div>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setEditingPreset(null)}
+                className="px-4 py-2 text-sm text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+              >
+                取消
+              </button>
+              <button
+                onClick={handleUpdatePreset}
+                disabled={!editingPreset.name.trim() || !editingPreset.system_prompt.trim()}
+                className="px-4 py-2 text-sm text-white bg-blue-500 rounded-lg hover:bg-blue-600 transition-colors disabled:opacity-50"
+              >
+                <Save size={16} className="inline mr-1" />
+                保存
+              </button>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      <ConfirmDialog
+        isOpen={!!confirmDelete}
+        title="确认删除"
+        message="确定要删除这个角色预设吗？此操作不可撤销。"
+        onConfirm={() => {
+          if (confirmDelete) {
+            deleteRolePreset(confirmDelete);
+          }
+          setConfirmDelete(null);
+        }}
+        onCancel={() => setConfirmDelete(null)}
+      />
     </div>
   );
-}
+};
