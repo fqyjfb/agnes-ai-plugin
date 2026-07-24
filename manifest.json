@@ -1,7 +1,7 @@
 {
   "id": "plugin-agnes-ai",
   "name": "Agnes AI",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "AI助手聊天、字体生成器、历史记录管理，集成 Agnes AI 服务",
   "author": "ToolBox Team",
   "entry": "dist/index.js",
@@ -12,5 +12,7 @@
   "categories": ["AI", "工具"],
   "tags": ["ai", "chat", "font", "generator", "agnes"],
   "githubRepo": "fqyjfb/agnes-ai-plugin",
-  "isBeta": false
+  "isBeta": false,
+  "width": 1024,
+  "height": 640
 }
